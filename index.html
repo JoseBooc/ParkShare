@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkShare – Rent & Share Parking Spaces</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        park: {
+                            50: '#eef7ff',
+                            100: '#d9edff',
+                            200: '#bce0ff',
+                            300: '#8ecdff',
+                            400: '#53b0ff',
+                            500: '#2b8eff',
+                            600: '#146ef5',
+                            700: '#0d58e1',
+                            800: '#1147b6',
+                            900: '#143f8f',
+                            950: '#0f2b4c',
+                        },
+                        share: {
+                            50: '#edfffe',
+                            100: '#d1fffc',
+                            200: '#a9fff8',
+                            300: '#6afdf2',
+                            400: '#2bf0e4',
+                            500: '#00d4c8',
+                            600: '#00adb0',
+                            700: '#008a90',
+                            800: '#076e75',
+                            900: '#0a5a61',
+                            950: '#003a3f',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; }
+        
+        .gradient-brand {
+            background: linear-gradient(135deg, #0f2b4c 0%, #146ef5 50%, #00d4c8 100%);
+        }
+        .gradient-brand-light {
+            background: linear-gradient(135deg, #d9edff 0%, #a9fff8 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #0f2b4c 0%, #146ef5 40%, #00d4c8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-btn {
+            background: linear-gradient(135deg, #146ef5 0%, #00d4c8 100%);
+            transition: all 0.3s ease;
+        }
+        .gradient-btn:hover {
+            background: linear-gradient(135deg, #0d58e1 0%, #00adb0 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 200, 0.3);
+        }
+        .gradient-btn:active { transform: translateY(0); }
+        
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px rgba(15, 43, 76, 0.15);
+        }
+        
+        .nav-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .pulse-dot {
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+        
+        .map-container { border-radius: 16px; overflow: hidden; }
+        
+        #map { height: 400px; width: 100%; z-index: 1; }
+        
+        .parking-marker {
+            background: linear-gradient(135deg, #146ef5, #00d4c8);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 212, 200, 0.4);
+        }
+        .parking-marker i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(0, 212, 200, 0.2);
+        }
+
+        .amenity-tag {
+            transition: all 0.2s ease;
+        }
+        .amenity-tag:hover {
+            transform: scale(1.05);
+        }
+        
+        .hero-pattern {
+            background-image: radial-gradient(circle at 20% 50%, rgba(0, 212, 200, 0.08) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 20%, rgba(20, 110, 245, 0.08) 0%, transparent 50%),
+                              radial-gradient(circle at 60% 80%, rgba(0, 173, 176, 0.05) 0%, transparent 50%);
+        }
+
+        .step-connector {
+            background: linear-gradient(90deg, #146ef5, #00d4c8);
+            height: 2px;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(#146ef5, #00d4c8); border-radius: 4px; }
+
+        .toast {
+            animation: slideIn 0.4s ease, slideOut 0.4s ease 2.6s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .modal-overlay {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            animation: scaleIn 0.3s ease;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .mobile-menu {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-white text-park-950">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-24 right-4 z-[100] flex flex-col gap-2"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-blur bg-white/80 border-b border-park-100/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 lg:h-20">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-2.5 group">
+                    <div class="relative w-10 h-10 rounded-xl gradient-brand flex items-center justify-center shadow-lg shadow-share-500/20 group-hover:shadow-share-500/40 transition-shadow">
+                        <i class="fas fa-location-arrow text-white text-sm -rotate-45"></i>
+                    </div>
+                    <div class="flex items-baseline">
+                        <span class="text-xl font-bold text-park-950">Park</span>
+                        <span class="text-xl font-bold text-share-600">Share</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="#search" class="px-4 py-2 text-sm font-medium text-park-700 hover:text-share-600 rounded-lg hover:bg-share-50 transition-all">Find Parking</a>
+                    <a href="#how-it-works" class="px-4 py-2 text-sm font-medium text-park-700 hover:text-share-600 rounded-lg hover:bg-share-50 transition-all">How It Works</a>
+                    <a href="#listings" class="px-4 py-2 text-sm font-medium text-park-700 hover:text-share-600 rounded-lg hover:bg-share-50 transition-all">Listings</a>
+                    <a href="#list-space" class="px-4 py-2 text-sm font-medium text-park-700 hover:text-share-600 rounded-lg hover:bg-share-50 transition-all">List Your Space</a>
+                </div>
+
+                <!-- Desktop CTA -->
+                <div class="hidden md:flex items-center gap-3">
+                    <button onclick="openModal('login-modal')" class="px-5 py-2.5 text-sm font-semibold text-park-700 hover:text-park-950 border border-park-200 rounded-xl hover:border-park-300 hover:bg-park-50 transition-all">
+                        Log In
+                    </button>
+                    <button onclick="openModal('signup-modal')" class="gradient-btn px-5 py-2.5 text-sm font-semibold text-white rounded-xl">
+                        Sign Up Free
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg hover:bg-park-50 transition-colors">
+                    <i class="fas fa-bars text-park-700 text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="mobile-menu md:hidden hidden bg-white border-t border-park-100">
+            <div class="px-4 py-4 space-y-1">
+                <a href="#search" onclick="closeMobileMenu()" class="block px-4 py-3 text-sm font-medium text-park-700 hover:bg-share-50 rounded-xl transition-colors">Find Parking</a>
+                <a href="#how-it-works" onclick="closeMobileMenu()" class="block px-4 py-3 text-sm font-medium text-park-700 hover:bg-share-50 rounded-xl transition-colors">How It Works</a>
+                <a href="#listings" onclick="closeMobileMenu()" class="block px-4 py-3 text-sm font-medium text-park-700 hover:bg-share-50 rounded-xl transition-colors">Listings</a>
+                <a href="#list-space" onclick="closeMobileMenu()" class="block px-4 py-3 text-sm font-medium text-park-700 hover:bg-share-50 rounded-xl transition-colors">List Your Space</a>
+                <div class="pt-3 border-t border-park-100 flex flex-col gap-2">
+                    <button onclick="openModal('login-modal'); closeMobileMenu();" class="w-full px-4 py-3 text-sm font-semibold text-park-700 border border-park-200 rounded-xl">Log In</button>
+                    <button onclick="openModal('signup-modal'); closeMobileMenu();" class="w-full gradient-btn px-4 py-3 text-sm font-semibold text-white rounded-xl">Sign Up Free</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center hero-pattern overflow-hidden">
+        <!-- Background Decorations -->
+        <div class="absolute top-20 right-10 w-72 h-72 bg-share-200/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-20 left-10 w-96 h-96 bg-park-200/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-share-100/10 rounded-full blur-3xl"></div>
+
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 w-full">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                <!-- Left Content -->
+                <div class="fade-in">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-share-50 border border-share-200 rounded-full mb-6">
+                        <span class="w-2 h-2 bg-share-500 rounded-full pulse-dot"></span>
+                        <span class="text-sm font-medium text-share-700">Over 2,500 spaces available now</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-6">
+                        <span class="text-park-950">Find & Rent</span><br>
+                        <span class="gradient-text">Parking Near You</span>
+                    </h1>
+
+                    <p class="text-lg sm:text-xl text-park-600 leading-relaxed mb-8 max-w-lg">
+                        Turn idle driveways, garages, and lots into income. Find affordable, convenient parking in seconds — before you arrive.
+                    </p>
+
+                    <!-- Search Box -->
+                    <div id="search" class="bg-white rounded-2xl shadow-xl shadow-park-950/5 border border-park-100 p-3 mb-8">
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <div class="flex-1 relative">
+                                <i class="fas fa-map-marker-alt absolute left-4 top-1/2 -translate-y-1/2 text-share-500"></i>
+                                <input id="search-location" type="text" placeholder="Address, city, or zip code..." 
+                                    class="search-input w-full pl-11 pr-4 py-3.5 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 placeholder-park-400 focus:outline-none focus:border-share-400 transition-all" />
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="relative">
+                                    <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-park-400 text-xs"></i>
+                                    <input id="search-date" type="date" 
+                                        class="search-input w-32 sm:w-36 pl-9 pr-2 py-3.5 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 focus:outline-none focus:border-share-400 transition-all" />
+                                </div>
+                                <button onclick="searchParking()" class="gradient-btn px-6 py-3.5 rounded-xl text-white font-semibold text-sm whitespace-nowrap">
+                                    <i class="fas fa-search mr-2"></i>Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trust Badges -->
+                    <div class="flex flex-wrap items-center gap-6 text-sm text-park-500">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-shield-halved text-share-500"></i>
+                            <span>Insured bookings</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <span>4.9 avg rating</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-clock text-share-500"></i>
+                            <span>Instant booking</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Visual -->
+                <div class="fade-in relative" style="transition-delay: 0.2s;">
+                    <div class="relative">
+                        <!-- Main Image Card -->
+                        <div class="relative rounded-3xl overflow-hidden shadow-2xl shadow-park-950/10 float-animation">
+                            <img src="https://picsum.photos/seed/parkshare-hero/600/500.jpg" alt="Parking space" class="w-full h-[400px] lg:h-[480px] object-cover" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-park-950/60 via-transparent to-transparent"></div>
+                            
+                            <!-- Floating Info Card -->
+                            <div class="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-bold text-park-950">Downtown Garage Spot</p>
+                                        <p class="text-sm text-park-500 flex items-center gap-1 mt-0.5">
+                                            <i class="fas fa-map-pin text-share-500 text-xs"></i>
+                                            0.3 mi away • Covered
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-2xl font-bold gradient-text">$5</p>
+                                        <p class="text-xs text-park-400">/hour</p>
+                                    </div>
+                                </div>
+                                <button onclick="showToast('Booking feature coming soon!', 'info')" class="w-full mt-3 gradient-btn py-2.5 rounded-xl text-white text-sm font-semibold">
+                                    Reserve Now
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Floating Stats -->
+                        <div class="absolute -top-4 -right-4 bg-white rounded-2xl shadow-lg shadow-park-950/10 p-3 border border-park-100">
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-park-400">Available Now</p>
+                                    <p class="text-sm font-bold text-park-950">1,247 spots</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+            <span class="text-xs text-park-400 font-medium">Scroll to explore</span>
+            <i class="fas fa-chevron-down text-share-500"></i>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="relative -mt-8 z-10">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="bg-white rounded-2xl shadow-xl shadow-park-950/5 border border-park-100 p-6 lg:p-8">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                    <div class="text-center fade-in">
+                        <p class="text-3xl lg:text-4xl font-extrabold gradient-text">15K+</p>
+                        <p class="text-sm text-park-500 mt-1">Parking Spaces</p>
+                    </div>
+                    <div class="text-center fade-in" style="transition-delay: 0.1s;">
+                        <p class="text-3xl lg:text-4xl font-extrabold gradient-text">50K+</p>
+                        <p class="text-sm text-park-500 mt-1">Happy Drivers</p>
+                    </div>
+                    <div class="text-center fade-in" style="transition-delay: 0.2s;">
+                        <p class="text-3xl lg:text-4xl font-extrabold gradient-text">$2.1M</p>
+                        <p class="text-sm text-park-500 mt-1">Earned by Hosts</p>
+                    </div>
+                    <div class="text-center fade-in" style="transition-delay: 0.3s;">
+                        <p class="text-3xl lg:text-4xl font-extrabold gradient-text">120+</p>
+                        <p class="text-sm text-park-500 mt-1">Cities Covered</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-24 lg:py-32 bg-park-50/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-share-50 text-share-700 text-xs font-semibold uppercase tracking-wider rounded-full mb-4">
+                    <i class="fas fa-route"></i> Simple Process
+                </span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-park-950 tracking-tight">
+                    How ParkShare Works
+                </h2>
+                <p class="mt-4 text-lg text-park-500 max-w-2xl mx-auto">
+                    Whether you're looking for parking or listing a space, it takes just a few steps.
+                </p>
+            </div>
+
+            <!-- For Drivers -->
+            <div class="mb-20">
+                <h3 class="text-xl font-bold text-park-950 mb-8 flex items-center gap-3 fade-in">
+                    <div class="w-10 h-10 gradient-brand rounded-xl flex items-center justify-center">
+                        <i class="fas fa-car text-white text-sm"></i>
+                    </div>
+                    For Drivers
+                </h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in relative">
+                        <div class="w-14 h-14 gradient-brand-light rounded-2xl flex items-center justify-center mb-5">
+                            <span class="text-2xl font-extrabold gradient-text">1</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-park-950 mb-2">Search Nearby</h4>
+                        <p class="text-sm text-park-500 leading-relaxed">Enter your destination and find available parking spaces nearby with real-time availability.</p>
+                        <div class="hidden md:block absolute top-1/2 -right-3 z-10">
+                            <i class="fas fa-chevron-right text-share-300"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in relative" style="transition-delay: 0.1s;">
+                        <div class="w-14 h-14 gradient-brand-light rounded-2xl flex items-center justify-center mb-5">
+                            <span class="text-2xl font-extrabold gradient-text">2</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-park-950 mb-2">Compare & Book</h4>
+                        <p class="text-sm text-park-500 leading-relaxed">Compare prices, amenities, photos, and reviews. Reserve your spot instantly with secure payment.</p>
+                        <div class="hidden md:block absolute top-1/2 -right-3 z-10">
+                            <i class="fas fa-chevron-right text-share-300"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in" style="transition-delay: 0.2s;">
+                        <div class="w-14 h-14 gradient-brand-light rounded-2xl flex items-center justify-center mb-5">
+                            <span class="text-2xl font-extrabold gradient-text">3</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-park-950 mb-2">Park & Go</h4>
+                        <p class="text-sm text-park-500 leading-relaxed">Navigate to your spot with in-app directions. Park with confidence and rate your experience.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- For Hosts -->
+            <div>
+                <h3 class="text-xl font-bold text-park-950 mb-8 flex items-center gap-3 fade-in">
+                    <div class="w-10 h-10 gradient-brand rounded-xl flex items-center justify-center">
+                        <i class="fas fa-home text-white text-sm"></i>
+                    </div>
+                    For Space Owners
+                </h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in relative">
+                        <div class="w-14 h-14 bg-park-50 rounded-2xl flex items-center justify-center mb-5">
+                            <span class="text-2xl font-extrabold text-park-400">1</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-park-950 mb-2">List Your Space</h4>
+                        <p class="text-sm text-park-500 leading-relaxed">Add your driveway, garage, or lot. Set your own price, availability, and rules in minutes.</p>
+                        <div class="hidden md:block absolute top-1/2 -right-3 z-10">
+                            <i class="fas fa-chevron-right text-park-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in relative" style="transition-delay: 0.1s;">
+                        <div class="w-14 h-14 bg-park-50 rounded-2xl flex items-center justify-center mb-5">
+                            <span class="text-2xl font-extrabold text-park-400">2</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-park-950 mb-2">Accept Bookings</h4>
+                        <p class="text-sm text-park-500 leading-relaxed">Review booking requests and accept automatically or manually. Stay in control of your schedule.</p>
+                        <div class="hidden md:block absolute top-1/2 -right-3 z-10">
+                            <i class="fas fa-chevron-right text-park-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in" style="transition-delay: 0.2s;">
+                        <div class="w-14 h-14 bg-park-50 rounded-2xl flex items-center justify-center mb-5">
+                            <span class="text-2xl font-extrabold text-park-400">3</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-park-950 mb-2">Earn Money</h4>
+                        <p class="text-sm text-park-500 leading-relaxed">Get paid directly to your bank account. Track earnings and manage everything from your dashboard.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map + Listings Section -->
+    <section id="listings" class="py-24 lg:py-32">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 fade-in">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-share-50 text-share-700 text-xs font-semibold uppercase tracking-wider rounded-full mb-4">
+                    <i class="fas fa-map-location-dot"></i> Explore Spaces
+                </span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-park-950 tracking-tight">
+                    Parking Near You
+                </h2>
+                <p class="mt-4 text-lg text-park-500 max-w-2xl mx-auto">
+                    Browse available spaces on the map or scroll through listings below.
+                </p>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex flex-wrap items-center gap-3 mb-8 fade-in">
+                <button onclick="filterListings('all')" class="filter-btn active px-5 py-2.5 rounded-xl text-sm font-semibold transition-all gradient-btn text-white" data-filter="all">
+                    All Spaces
+                </button>
+                <button onclick="filterListings('driveway')" class="filter-btn px-5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-park-50 text-park-600 hover:bg-park-100 border border-park-200" data-filter="driveway">
+                    <i class="fas fa-home mr-1.5"></i>Driveway
+                </button>
+                <button onclick="filterListings('garage')" class="filter-btn px-5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-park-50 text-park-600 hover:bg-park-100 border border-park-200" data-filter="garage">
+                    <i class="fas fa-warehouse mr-1.5"></i>Garage
+                </button>
+                <button onclick="filterListings('lot')" class="filter-btn px-5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-park-50 text-park-600 hover:bg-park-100 border border-park-200" data-filter="lot">
+                    <i class="fas fa-square-parking mr-1.5"></i>Lot
+                </button>
+                <button onclick="filterListings('covered')" class="filter-btn px-5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-park-50 text-park-600 hover:bg-park-100 border border-park-200" data-filter="covered">
+                    <i class="fas fa-umbrella mr-1.5"></i>Covered
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8">
+                <!-- Map -->
+                <div class="lg:col-span-2 fade-in">
+                    <div class="map-container shadow-lg shadow-park-950/5 border border-park-100">
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <!-- Listings Grid -->
+                <div class="lg:col-span-3">
+                    <div id="listings-grid" class="grid sm:grid-cols-2 gap-5">
+                        <!-- Listings will be injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- List Your Space CTA -->
+    <section id="list-space" class="py-24 lg:py-32 relative overflow-hidden">
+        <div class="absolute inset-0 gradient-brand opacity-[0.03]"></div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-share-200/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-park-200/20 rounded-full blur-3xl"></div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                <!-- Left: Earnings Calculator -->
+                <div class="fade-in">
+                    <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-share-50 text-share-700 text-xs font-semibold uppercase tracking-wider rounded-full mb-6">
+                        <i class="fas fa-calculator"></i> Earnings Calculator
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-park-950 tracking-tight mb-4">
+                        See How Much You Could Earn
+                    </h2>
+                    <p class="text-park-500 mb-8">
+                        Most hosts earn $200–$800/month. Calculate your potential income below.
+                    </p>
+
+                    <div class="bg-white rounded-2xl shadow-lg shadow-park-950/5 border border-park-100 p-6 lg:p-8">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-park-700 mb-2">
+                                    Space Type
+                                </label>
+                                <select id="calc-type" onchange="calculateEarnings()" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 focus:outline-none focus:border-share-400 transition-all">
+                                    <option value="driveway">Driveway</option>
+                                    <option value="garage">Garage</option>
+                                    <option value="lot">Parking Lot</option>
+                                    <option value="condo">Condo Slot</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-park-700 mb-2">
+                                    Hours per Day Available
+                                </label>
+                                <input id="calc-hours" type="range" min="2" max="24" value="8" onchange="calculateEarnings()" oninput="calculateEarnings()"
+                                    class="w-full h-2 bg-park-100 rounded-lg appearance-none cursor-pointer accent-share-500" />
+                                <div class="flex justify-between text-xs text-park-400 mt-1">
+                                    <span>2h</span>
+                                    <span id="calc-hours-val" class="font-semibold text-share-600">8h</span>
+                                    <span>24h</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-park-700 mb-2">
+                                    Days per Week
+                                </label>
+                                <input id="calc-days" type="range" min="1" max="7" value="5" onchange="calculateEarnings()" oninput="calculateEarnings()"
+                                    class="w-full h-2 bg-park-100 rounded-lg appearance-none cursor-pointer accent-share-500" />
+                                <div class="flex justify-between text-xs text-park-400 mt-1">
+                                    <span>1 day</span>
+                                    <span id="calc-days-val" class="font-semibold text-share-600">5 days</span>
+                                    <span>7 days</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-park-100">
+                            <div class="flex items-end justify-between">
+                                <div>
+                                    <p class="text-sm text-park-400">Estimated Monthly Earnings</p>
+                                    <p id="calc-result" class="text-4xl lg:text-5xl font-extrabold gradient-text mt-1">$640</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-park-400">Yearly</p>
+                                    <p id="calc-yearly" class="text-lg font-bold text-park-700">$7,680</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="showToast('Sign up to start listing your space!', 'success')" class="w-full mt-6 gradient-btn py-4 rounded-xl text-white font-bold text-base">
+                            Start Earning Today
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Image + Features -->
+                <div class="fade-in" style="transition-delay: 0.2s;">
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl shadow-park-950/10 mb-8">
+                        <img src="https://picsum.photos/seed/parkshare-driveway/600/450.jpg" alt="Driveway parking space" class="w-full h-[350px] object-cover" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-park-950/50 to-transparent"></div>
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <div class="flex items-center gap-3">
+                                <img src="https://picsum.photos/seed/host-avatar/48/48.jpg" alt="Host" class="w-12 h-12 rounded-full border-2 border-white" />
+                                <div>
+                                    <p class="text-white font-bold">Maria G.</p>
+                                    <p class="text-white/70 text-sm">Earns $520/mo from her driveway</p>
+                                </div>
+                                <div class="ml-auto flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1">
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <span class="text-white text-sm font-semibold">4.9</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature List -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-park-50 rounded-xl p-4 border border-park-100">
+                            <div class="w-10 h-10 bg-share-50 rounded-lg flex items-center justify-center mb-3">
+                                <i class="fas fa-dollar-sign text-share-600"></i>
+                            </div>
+                            <p class="text-sm font-bold text-park-950">Set Your Price</p>
+                            <p class="text-xs text-park-400 mt-1">You control the hourly rate</p>
+                        </div>
+                        <div class="bg-park-50 rounded-xl p-4 border border-park-100">
+                            <div class="w-10 h-10 bg-share-50 rounded-lg flex items-center justify-center mb-3">
+                                <i class="fas fa-calendar-check text-share-600"></i>
+                            </div>
+                            <p class="text-sm font-bold text-park-950">Flexible Schedule</p>
+                            <p class="text-xs text-park-400 mt-1">Choose when it's available</p>
+                        </div>
+                        <div class="bg-park-50 rounded-xl p-4 border border-park-100">
+                            <div class="w-10 h-10 bg-share-50 rounded-lg flex items-center justify-center mb-3">
+                                <i class="fas fa-shield-halved text-share-600"></i>
+                            </div>
+                            <p class="text-sm font-bold text-park-950">Protected</p>
+                            <p class="text-xs text-park-400 mt-1">$1M liability coverage</p>
+                        </div>
+                        <div class="bg-park-50 rounded-xl p-4 border border-park-100">
+                            <div class="w-10 h-10 bg-share-50 rounded-lg flex items-center justify-center mb-3">
+                                <i class="fas fa-bolt text-share-600"></i>
+                            </div>
+                            <p class="text-sm font-bold text-park-950">Fast Payouts</p>
+                            <p class="text-xs text-park-400 mt-1">Direct to your bank</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-24 lg:py-32 bg-park-50/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-share-50 text-share-700 text-xs font-semibold uppercase tracking-wider rounded-full mb-4">
+                    <i class="fas fa-quote-left"></i> Testimonials
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-park-950 tracking-tight">
+                    Loved by Drivers & Hosts
+                </h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in">
+                    <div class="flex gap-1 mb-4">
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                    </div>
+                    <p class="text-park-600 text-sm leading-relaxed mb-6">
+                        "I used to circle blocks for 30 minutes before appointments. Now I book a spot on ParkShare in seconds and arrive stress-free. It's a game changer!"
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <img src="https://picsum.photos/seed/user-james/40/40.jpg" alt="James" class="w-10 h-10 rounded-full" />
+                        <div>
+                            <p class="text-sm font-bold text-park-950">James R.</p>
+                            <p class="text-xs text-park-400">Driver • San Francisco</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in" style="transition-delay: 0.1s;">
+                    <div class="flex gap-1 mb-4">
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                    </div>
+                    <p class="text-park-600 text-sm leading-relaxed mb-6">
+                        "My driveway sits empty while I'm at work. ParkShare turned it into $450/month extra income. The app makes everything easy — scheduling, payments, everything."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <img src="https://picsum.photos/seed/user-sarah/40/40.jpg" alt="Sarah" class="w-10 h-10 rounded-full" />
+                        <div>
+                            <p class="text-sm font-bold text-park-950">Sarah M.</p>
+                            <p class="text-xs text-park-400">Host • Austin</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 border border-park-100 card-hover fade-in" style="transition-delay: 0.2s;">
+                    <div class="flex gap-1 mb-4">
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                    </div>
+                    <p class="text-park-600 text-sm leading-relaxed mb-6">
+                        "Our church has a large lot that's empty on weekdays. Listing it on ParkShare helps cover maintenance costs and serves the community. Win-win!"
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <img src="https://picsum.photos/seed/user-pastor/40/40.jpg" alt="Pastor Davis" class="w-10 h-10 rounded-full" />
+                        <div>
+                            <p class="text-sm font-bold text-park-950">Pastor Davis</p>
+                            <p class="text-xs text-park-400">Host • Chicago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-24 lg:py-32">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="relative gradient-brand rounded-3xl p-10 lg:p-16 text-center overflow-hidden fade-in">
+                <!-- Decorative Elements -->
+                <div class="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                <div class="absolute bottom-0 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
+                <div class="absolute top-1/2 left-1/4 w-3 h-3 bg-share-400/40 rounded-full pulse-dot"></div>
+                <div class="absolute top-1/3 right-1/4 w-2 h-2 bg-white/30 rounded-full pulse-dot" style="animation-delay: 1s;"></div>
+                
+                <div class="relative">
+                    <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-location-arrow text-white text-2xl -rotate-45"></i>
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
+                        Ready to Park Smarter?
+                    </h2>
+                    <p class="text-lg text-white/70 max-w-xl mx-auto mb-8">
+                        Join thousands of drivers and hosts transforming how parking works. Sign up free today.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button onclick="openModal('signup-modal')" class="w-full sm:w-auto px-8 py-4 bg-white text-park-950 rounded-xl font-bold text-base hover:bg-white/90 hover:shadow-lg hover:shadow-white/20 transition-all">
+                            Find Parking Now
+                        </button>
+                        <button onclick="showToast('Sign up to list your space!', 'success')" class="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-xl font-bold text-base hover:bg-white/20 transition-all">
+                            List Your Space
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-park-950 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
+                <!-- Brand -->
+                <div class="col-span-2 md:col-span-4 lg:col-span-1 mb-4 lg:mb-0">
+                    <a href="#" class="flex items-center gap-2.5 mb-4">
+                        <div class="w-9 h-9 rounded-lg gradient-brand flex items-center justify-center">
+                            <i class="fas fa-location-arrow text-white text-xs -rotate-45"></i>
+                        </div>
+                        <div class="flex items-baseline">
+                            <span class="text-lg font-bold text-white">Park</span>
+                            <span class="text-lg font-bold text-share-400">Share</span>
+                        </div>
+                    </a>
+                    <p class="text-sm text-park-400 leading-relaxed mb-4">
+                        Turn idle parking into income. Find convenient spots in seconds.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-9 h-9 bg-park-900 rounded-lg flex items-center justify-center hover:bg-share-600 transition-colors">
+                            <i class="fab fa-twitter text-sm"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 bg-park-900 rounded-lg flex items-center justify-center hover:bg-share-600 transition-colors">
+                            <i class="fab fa-instagram text-sm"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 bg-park-900 rounded-lg flex items-center justify-center hover:bg-share-600 transition-colors">
+                            <i class="fab fa-facebook-f text-sm"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 bg-park-900 rounded-lg flex items-center justify-center hover:bg-share-600 transition-colors">
+                            <i class="fab fa-linkedin-in text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Drivers -->
+                <div>
+                    <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Drivers</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Find Parking</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">How It Works</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Pricing</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Mobile App</a></li>
+                    </ul>
+                </div>
+
+                <!-- Hosts -->
+                <div>
+                    <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Hosts</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">List Your Space</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Earnings Calculator</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Host Resources</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Insurance</a></li>
+                    </ul>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Company</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">About Us</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Careers</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Blog</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="text-sm font-bold text-white mb-4 uppercase tracking-wider">Legal</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Cookie Policy</a></li>
+                        <li><a href="#" class="text-sm text-park-400 hover:text-share-400 transition-colors">Accessibility</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-12 pt-8 border-t border-park-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p class="text-sm text-park-500">&copy; 2025 ParkShare. All rights reserved.</p>
+                <div class="flex items-center gap-4">
+                    <img src="https://img.shields.io/badge/SSL-Secured-green?style=flat-square" alt="SSL" class="h-5" />
+                    <span class="text-xs text-park-600 flex items-center gap-1">
+                        <i class="fas fa-lock text-share-500"></i> 256-bit encryption
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-[90] hidden">
+        <div class="modal-overlay absolute inset-0 bg-park-950/50 backdrop-blur-sm" onclick="closeModal('login-modal')"></div>
+        <div class="modal-content relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-park-950">Welcome Back</h3>
+                    <button onclick="closeModal('login-modal')" class="w-10 h-10 rounded-xl bg-park-50 flex items-center justify-center hover:bg-park-100 transition-colors">
+                        <i class="fas fa-times text-park-500"></i>
+                    </button>
+                </div>
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-park-700 mb-1.5">Email</label>
+                        <input type="email" required placeholder="you@email.com" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 placeholder-park-400 focus:outline-none focus:border-share-400 transition-all" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-park-700 mb-1.5">Password</label>
+                        <input type="password" required placeholder="••••••••" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 placeholder-park-400 focus:outline-none focus:border-share-400 transition-all" />
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 rounded accent-share-500" />
+                            <span class="text-sm text-park-500">Remember me</span>
+                        </label>
+                        <a href="#" class="text-sm text-share-600 font-medium hover:underline">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="w-full gradient-btn py-3.5 rounded-xl text-white font-bold text-sm">
+                        Log In
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-park-400">
+                        Don't have an account? 
+                        <button onclick="closeModal('login-modal'); openModal('signup-modal');" class="text-share-600 font-semibold hover:underline">Sign up</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signup-modal" class="fixed inset-0 z-[90] hidden">
+        <div class="modal-overlay absolute inset-0 bg-park-950/50 backdrop-blur-sm" onclick="closeModal('signup-modal')"></div>
+        <div class="modal-content relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-park-950">Create Account</h3>
+                    <button onclick="closeModal('signup-modal')" class="w-10 h-10 rounded-xl bg-park-50 flex items-center justify-center hover:bg-park-100 transition-colors">
+                        <i class="fas fa-times text-park-500"></i>
+                    </button>
+                </div>
+                <form onsubmit="handleSignup(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-park-700 mb-1.5">First Name</label>
+                            <input type="text" required placeholder="John" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 placeholder-park-400 focus:outline-none focus:border-share-400 transition-all" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-park-700 mb-1.5">Last Name</label>
+                            <input type="text" required placeholder="Doe" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 placeholder-park-400 focus:outline-none focus:border-share-400 transition-all" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-park-700 mb-1.5">Email</label>
+                        <input type="email" required placeholder="you@email.com" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 placeholder-park-400 focus:outline-none focus:border-share-400 transition-all" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-park-700 mb-1.5">Password</label>
+                        <input type="password" required placeholder="Min 8 characters" minlength="8" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 placeholder-park-400 focus:outline-none focus:border-share-400 transition-all" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-park-700 mb-1.5">I want to...</label>
+                        <select class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 focus:outline-none focus:border-share-400 transition-all">
+                            <option>Find parking (Driver)</option>
+                            <option>List my space (Host)</option>
+                            <option>Both</option>
+                        </select>
+                    </div>
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" required class="w-4 h-4 rounded accent-share-500 mt-0.5" />
+                        <span class="text-sm text-park-500">I agree to the <a href="#" class="text-share-600 hover:underline">Terms of Service</a> and <a href="#" class="text-share-600 hover:underline">Privacy Policy</a></span>
+                    </label>
+                    <button type="submit" class="w-full gradient-btn py-3.5 rounded-xl text-white font-bold text-sm">
+                        Create Account
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-park-400">
+                        Already have an account? 
+                        <button onclick="closeModal('signup-modal'); openModal('login-modal');" class="text-share-600 font-semibold hover:underline">Log in</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Detail Modal -->
+    <div id="booking-modal" class="fixed inset-0 z-[90] hidden">
+        <div class="modal-overlay absolute inset-0 bg-park-950/50 backdrop-blur-sm" onclick="closeModal('booking-modal')"></div>
+        <div class="modal-content relative z-10 flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+                <div class="relative h-48">
+                    <img id="booking-image" src="" alt="" class="w-full h-full object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-park-950/60 to-transparent"></div>
+                    <button onclick="closeModal('booking-modal')" class="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors">
+                        <i class="fas fa-times text-white"></i>
+                    </button>
+                </div>
+                <div class="p-6 lg:p-8">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 id="booking-title" class="text-xl font-bold text-park-950"></h3>
+                            <p id="booking-address" class="text-sm text-park-500 mt-1"></p>
+                        </div>
+                        <div class="text-right">
+                            <p id="booking-price" class="text-2xl font-extrabold gradient-text"></p>
+                            <p class="text-xs text-park-400">/hour</p>
+                        </div>
+                    </div>
+                    <div id="booking-amenities" class="flex flex-wrap gap-2 mb-6"></div>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-park-50 rounded-xl p-3 text-center">
+                            <i class="fas fa-star text-yellow-400 text-sm mb-1"></i>
+                            <p id="booking-rating" class="text-sm font-bold text-park-950"></p>
+                            <p class="text-xs text-park-400">Rating</p>
+                        </div>
+                        <div class="bg-park-50 rounded-xl p-3 text-center">
+                            <i class="fas fa-bookings text-share-500 text-sm mb-1"></i>
+                            <p id="booking-bookings" class="text-sm font-bold text-park-950"></p>
+                            <p class="text-xs text-park-400">Bookings</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 mb-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-park-700 mb-1.5">Date</label>
+                            <input type="date" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 focus:outline-none focus:border-share-400 transition-all" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-park-700 mb-1.5">Start Time</label>
+                                <input type="time" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 focus:outline-none focus:border-share-400 transition-all" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-park-700 mb-1.5">End Time</label>
+                                <input type="time" class="w-full px-4 py-3 bg-park-50 border border-park-100 rounded-xl text-sm text-park-950 focus:outline-none focus:border-share-400 transition-all" />
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="handleBooking()" class="w-full gradient-btn py-4 rounded-xl text-white font-bold text-base">
+                        Reserve This Spot
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DATA - Parking listings
+        // ============================================
+        const parkingSpaces = [
+            {
+                id: 1, title: "Downtown Garage Spot", type: "garage", covered: true,
+                address: "123 Main St, Downtown", price: 5, rating: 4.9, bookings: 312,
+                distance: "0.3 mi", lat: 40.7128, lng: -74.006,
+                image: "https://picsum.photos/seed/parking-garage1/400/300.jpg",
+                amenities: ["Covered", "EV Charger", "24/7 Access", "Security Camera"]
+            },
+            {
+                id: 2, title: "Residential Driveway", type: "driveway", covered: false,
+                address: "456 Oak Ave, Midtown", price: 3, rating: 4.8, bookings: 187,
+                distance: "0.5 mi", lat: 40.758, lng: -73.9855,
+                image: "https://picsum.photos/seed/parking-driveway1/400/300.jpg",
+                amenities: ["Wide Space", "Well Lit", "Easy Access"]
+            },
+            {
+                id: 3, title: "Office Building Lot", type: "lot", covered: false,
+                address: "789 Business Blvd", price: 8, rating: 4.7, bookings: 456,
+                distance: "0.8 mi", lat: 40.7282, lng: -73.7949,
+                image: "https://picsum.photos/seed/parking-lot1/400/300.jpg",
+                amenities: ["Large Lot", "Guarded", "Monthly Discount"]
+            },
+            {
+                id: 4, title: "Covered Condo Spot", type: "covered", covered: true,
+                address: "321 Pine St, Westside", price: 6, rating: 5.0, bookings: 89,
+                distance: "1.2 mi", lat: 40.748, lng: -74.026,
+                image: "https://picsum.photos/seed/parking-condo1/400/300.jpg",
+                amenities: ["Underground", "Covered", "EV Charger", "Gated"]
+            },
+            {
+                id: 5, title: "Church Parking Lot", type: "lot", covered: false,
+                address: "555 Grace Ave", price: 2, rating: 4.6, bookings: 234,
+                distance: "1.5 mi", lat: 40.7061, lng: -74.0087,
+                image: "https://picsum.photos/seed/parking-church1/400/300.jpg",
+                amenities: ["Large Space", "Affordable", "Weekday Only"]
+            },
+            {
+                id: 6, title: "Private Garage", type: "garage", covered: true,
+                address: "888 Elm Rd, Eastside", price: 7, rating: 4.9, bookings: 156,
+                distance: "0.9 mi", lat: 40.735, lng: -73.99,
+                image: "https://picsum.photos/seed/parking-garage2/400/300.jpg",
+                amenities: ["Private", "Covered", "Security Camera", "24/7 Access"]
+            },
+            {
+                id: 7, title: "Suburban Driveway", type: "driveway", covered: false,
+                address: "222 Maple Dr", price: 2.5, rating: 4.5, bookings: 78,
+                distance: "2.1 mi", lat: 40.72, lng: -73.98,
+                image: "https://picsum.photos/seed/parking-driveway2/400/300.jpg",
+                amenities: ["Quiet Area", "Wide Space", "Easy In/Out"]
+            },
+            {
+                id: 8, title: "Shopping Center Spot", type: "covered", covered: true,
+                address: "600 Commerce Way", price: 4, rating: 4.4, bookings: 567,
+                distance: "1.8 mi", lat: 40.745, lng: -73.992,
+                image: "https://picsum.photos/seed/parking-shopping1/400/300.jpg",
+                amenities: ["Covered", "Well Lit", "Near Shops", "24/7 Access"]
+            }
+        ];
+
+        // ============================================
+        // MAP INITIALIZATION
+        // ============================================
+        let map;
+        let markers = [];
+
+        function initMap() {
+            map = L.map('map', {
+                scrollWheelZoom: false
+            }).setView([40.7328, -73.995], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            addMarkers(parkingSpaces);
+        }
+
+        function addMarkers(spaces) {
+            // Clear existing markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            spaces.forEach(space => {
+                const icon = L.divIcon({
+                    className: '',
+                    html: `<div class="parking-marker"><i class="fas fa-p"></i></div>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36],
+                    popupAnchor: [0, -36]
+                });
+
+                const marker = L.marker([space.lat, space.lng], { icon })
+                    .addTo(map)
+                    .bindPopup(`
+                        <div style="min-width:200px;font-family:Inter,sans-serif;">
+                            <img src="${space.image}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px;" />
+                            <strong style="font-size:14px;color:#0f2b4c;">${space.title}</strong>
+                            <p style="font-size:12px;color:#6b7280;margin:4px 0;">${space.address}</p>
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:18px;font-weight:800;background:linear-gradient(135deg,#146ef5,#00d4c8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">$${space.price}</span>
+                                <span style="font-size:11px;color:#9ca3af;">/hour</span>
+                            </div>
+                        </div>
+                    `);
+
+                marker.on('click', () => openBookingModal(space));
+                markers.push(marker);
+            });
+        }
+
+        // ============================================
+        // LISTINGS RENDERING
+        // ============================================
+        function renderListings(spaces) {
+            const grid = document.getElementById('listings-grid');
+            grid.innerHTML = spaces.map(space => `
+                <div class="bg-white rounded-2xl border border-park-100 overflow-hidden card-hover cursor-pointer" data-type="${space.type}" onclick="openBookingModal(parkingSpaces.find(s => s.id === ${space.id}))">
+                    <div class="relative">
+                        <img src="${space.image}" alt="${space.title}" class="w-full h-40 object-cover" />
+                        <div class="absolute top-3 left-3 flex gap-2">
+                            <span class="px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-xs font-semibold text-park-700 capitalize">
+                                ${space.type}
+                            </span>
+                            ${space.covered ? '<span class="px-2.5 py-1 bg-share-500/90 backdrop-blur-sm rounded-lg text-xs font-semibold text-white">Covered</span>' : ''}
+                        </div>
+                        <div class="absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1">
+                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                            <span class="text-xs font-bold text-park-700">${space.rating}</span>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-park-950 text-sm mb-1 truncate">${space.title}</h4>
+                        <p class="text-xs text-park-400 flex items-center gap-1 mb-3">
+                            <i class="fas fa-map-pin text-share-500 text-[10px]"></i>
+                            ${space.address} • ${space.distance}
+                        </p>
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            ${space.amenities.slice(0, 3).map(a => `
+                                <span class="amenity-tag px-2 py-0.5 bg-park-50 text-park-500 rounded text-[10px] font-medium">${a}</span>
+                            `).join('')}
+                            ${space.amenities.length > 3 ? `<span class="px-2 py-0.5 bg-share-50 text-share-600 rounded text-[10px] font-medium">+${space.amenities.length - 3}</span>` : ''}
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-park-50">
+                            <div>
+                                <span class="text-xl font-extrabold gradient-text">$${space.price}</span>
+                                <span class="text-xs text-park-400">/hour</span>
+                            </div>
+                            <span class="text-xs text-park-400">${space.bookings} bookings</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // FILTER
+        // ============================================
+        function filterListings(type) {
+            // Update button styles
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === type) {
+                    btn.className = 'filter-btn active px-5 py-2.5 rounded-xl text-sm font-semibold transition-all gradient-btn text-white';
+                } else {
+                    btn.className = 'filter-btn px-5 py-2.5 rounded-xl text-sm font-semibold transition-all bg-park-50 text-park-600 hover:bg-park-100 border border-park-200';
+                }
+            });
+
+            const filtered = type === 'all' 
+                ? parkingSpaces 
+                : parkingSpaces.filter(s => s.type === type || (type === 'covered' && s.covered));
+            
+            renderListings(filtered);
+            addMarkers(filtered);
+        }
+
+        // ============================================
+        // SEARCH
+        // ============================================
+        function searchParking() {
+            const query = document.getElementById('search-location').value.toLowerCase();
+            if (!query) {
+                showToast('Please enter a location to search.', 'warning');
+                return;
+            }
+            showToast(`Searching parking near "${query}"...`, 'info');
+            
+            // Scroll to listings
+            document.getElementById('listings').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ============================================
+        // BOOKING MODAL
+        // ============================================
+        function openBookingModal(space) {
+            document.getElementById('booking-image').src = space.image;
+            document.getElementById('booking-image').alt = space.title;
+            document.getElementById('booking-title').textContent = space.title;
+            document.getElementById('booking-address').textContent = space.address + ' • ' + space.distance;
+            document.getElementById('booking-price').textContent = '$' + space.price;
+            document.getElementById('booking-rating').textContent = space.rating;
+            document.getElementById('booking-bookings').textContent = space.bookings;
+            document.getElementById('booking-amenities').innerHTML = space.amenities.map(a => 
+                `<span class="px-3 py-1.5 bg-park-50 text-park-600 rounded-lg text-xs font-medium"><i class="fas fa-check text-share-500 mr-1"></i>${a}</span>`
+            ).join('');
+            openModal('booking-modal');
+        }
+
+        function handleBooking() {
+            closeModal('booking-modal');
+            showToast('Booking confirmed! Check your email for details.', 'success');
+        }
+
+        // ============================================
+        // EARNINGS CALCULATOR
+        // ============================================
+        function calculateEarnings() {
+            const type = document.getElementById('calc-type').value;
+            const hours = parseInt(document.getElementById('calc-hours').value);
+            const days = parseInt(document.getElementById('calc-days').value);
+
+            document.getElementById('calc-hours-val').textContent = hours + 'h';
+            document.getElementById('calc-days-val').textContent = days + ' days';
+
+            const rates = { driveway: 3, garage: 6, lot: 4, condo: 5 };
+            const rate = rates[type] || 4;
+            const monthly = Math.round(rate * hours * days * 4.33);
+            const yearly = monthly * 12;
+
+            document.getElementById('calc-result').textContent = '$' + monthly.toLocaleString();
+            document.getElementById('calc-yearly').textContent = '$' + yearly.toLocaleString();
+        }
+
+        // ============================================
+        // MODALS
+        // ============================================
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                ['login-modal', 'signup-modal', 'booking-modal'].forEach(id => closeModal(id));
+            }
+        });
+
+        // ============================================
+        // TOAST NOTIFICATIONS
+        // ============================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-park-600'
+            };
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast flex items-center gap-3 px-5 py-3.5 ${colors[type]} text-white rounded-xl shadow-lg text-sm font-medium min-w-[280px]`;
+            toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ============================================
+        // MOBILE MENU
+        // ============================================
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const btn = document.getElementById('mobile-menu-btn');
+            menu.classList.toggle('hidden');
+            const isOpen = !menu.classList.contains('hidden');
+            btn.innerHTML = isOpen 
+                ? '<i class="fas fa-times text-park-700 text-xl"></i>'
+                : '<i class="fas fa-bars text-park-700 text-xl"></i>';
+        }
+
+        function closeMobileMenu() {
+            document.getElementById('mobile-menu').classList.add('hidden');
+            document.getElementById('mobile-menu-btn').innerHTML = '<i class="fas fa-bars text-park-700 text-xl"></i>';
+        }
+
+        // ============================================
+        // FORM HANDLERS
+        // ============================================
+        function handleLogin(e) {
+            e.preventDefault();
+            closeModal('login-modal');
+            showToast('Welcome back! You are now logged in.', 'success');
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            closeModal('signup-modal');
+            showToast('Account created! Welcome to ParkShare.', 'success');
+        }
+
+        // ============================================
+        // SCROLL ANIMATIONS
+        // ============================================
+        function initScrollAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+            document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        }
+
+        // ============================================
+        // NAVBAR SCROLL EFFECT
+        // ============================================
+        function initNavScroll() {
+            let lastScroll = 0;
+            window.addEventListener('scroll', () => {
+                const navbar = document.getElementById('navbar');
+                const scroll = window.scrollY;
+                
+                if (scroll > 50) {
+                    navbar.classList.add('shadow-sm');
+                } else {
+                    navbar.classList.remove('shadow-sm');
+                }
+                lastScroll = scroll;
+            });
+        }
+
+        // ============================================
+        // SET DEFAULT DATE
+        // ============================================
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('search-date');
+            if (dateInput) dateInput.value = today;
+        }
+
+        // ============================================
+        // SMOOTH SCROLL FOR ANCHOR LINKS
+        // ============================================
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderListings(parkingSpaces);
+            initMap();
+            initScrollAnimations();
+            initNavScroll();
+            setDefaultDate();
+            calculateEarnings();
+        });
+    </script>
+</body>
+</html>
