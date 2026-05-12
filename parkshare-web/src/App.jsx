@@ -3,6 +3,7 @@ import "./App.css";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import OwnerLogin from "./pages/OwnerLogin.jsx";
 
 import DriverDashboard from "./pages/DriverDashboard";
 import DriverProfile from "./pages/DriverProfile";
@@ -20,16 +21,15 @@ function App() {
   const [screen, setScreen] = useState("landing");
 
   useEffect(() => {
-    const path = window.location.pathname;
-
-    if (path === "/admin") {
-      setScreen("ownerDashboard");
+    if (window.location.pathname === "/admin") {
+      setScreen("ownerLogin");
     }
   }, []);
 
   const pages = {
     landing: <Landing setScreen={setScreen} />,
     login: <Login setScreen={setScreen} />,
+    ownerLogin: <OwnerLogin setScreen={setScreen} />,
 
     driverDashboard: <DriverDashboard setScreen={setScreen} />,
     driverProfile: <DriverProfile setScreen={setScreen} />,
