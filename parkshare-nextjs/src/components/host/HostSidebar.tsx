@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -9,7 +10,6 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
-  Plus,
   User,
 } from "lucide-react";
 import { useState } from "react";
@@ -33,15 +33,26 @@ export default function HostSidebar() {
       } min-h-screen sticky top-0 h-screen`}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 py-4 border-b border-gray-100">
-        <Link href="/host" className="flex items-center gap-1 overflow-hidden">
-          <div className="w-8 h-8 flex-shrink-0 rounded-lg bg-park-teal flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
-          </div>
-          {!collapsed && (
-            <span className="font-bold text-park-navy text-sm whitespace-nowrap">
-              Park<span className="text-park-teal">Share</span>
-            </span>
+      <div className="flex items-center px-4 py-4 border-b border-gray-100">
+        <Link href="/host" className="flex items-center overflow-hidden">
+          {collapsed ? (
+            <Image
+              src="/logo-icon.png"
+              alt="ParkShare"
+              width={32}
+              height={32}
+              className="w-8 h-8 object-contain"
+              priority
+            />
+          ) : (
+            <Image
+              src="/logo.png"
+              alt="ParkShare"
+              width={130}
+              height={34}
+              className="h-8 w-auto object-contain"
+              priority
+            />
           )}
         </Link>
       </div>

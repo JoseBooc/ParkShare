@@ -214,7 +214,7 @@ export default function AddSlotPage() {
               <input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Limpyo. Source: Trust me"
+                placeholder="e.g. Clean and spacious slot near the main road."
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-park-teal transition-colors bg-white"
               />
             </div>

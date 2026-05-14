@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Car,
@@ -15,12 +16,8 @@ import {
   Shield,
   Check,
 } from "lucide-react";
-import type { VehicleType } from "@/lib/types";
-
 type Role = "driver" | "host";
 type Step = 1 | 2 | 3 | 4;
-
-const VEHICLE_TYPES: VehicleType[] = ["Sedan", "SUV", "Pickup Truck", "Motorcycle", "Van", "PUV"];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -66,13 +63,21 @@ export default function SignupPage() {
     <div className="w-full max-w-sm">
       {/* Logo */}
       <div className="flex flex-col items-center mb-6">
-        <div className="w-12 h-12 rounded-full bg-park-teal flex items-center justify-center mb-2">
-          <span className="text-white font-bold text-xl">P</span>
-        </div>
-        <span className="text-xl font-bold">
-          <span className="text-park-navy">Park</span>
-          <span className="text-park-teal">Share</span>
-        </span>
+        <Image
+          src="/logo-icon.png"
+          alt="ParkShare"
+          width={56}
+          height={56}
+          className="h-14 w-auto object-contain mb-2"
+          priority
+        />
+        <Image
+          src="/logo.png"
+          alt="ParkShare"
+          width={160}
+          height={40}
+          className="h-8 w-auto object-contain"
+        />
         <p className="text-sm text-gray-500 mt-1">Parking made simple</p>
       </div>
 

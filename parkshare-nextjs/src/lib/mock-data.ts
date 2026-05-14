@@ -194,7 +194,7 @@ export const REVIEWS: Review[] = [
     userId: "user-1",
     userName: "Shanaiah Cava",
     rating: 5,
-    comment: "Soooooooooooo clean typeshi. Will book again fr!",
+    comment: "Very clean and spacious parking slot. Super convenient location. Will definitely book again!",
     date: "November 13, 2026",
   },
   {
@@ -203,7 +203,7 @@ export const REVIEWS: Review[] = [
     userId: "user-2",
     userName: "Shanaiah Cava",
     rating: 5,
-    comment: "Soooooooooooo clean typeshi. Will book again fr!",
+    comment: "Great parking spot! The security is very reliable and the host is easy to contact. 10/10!",
     date: "November 13, 2026",
   },
   {

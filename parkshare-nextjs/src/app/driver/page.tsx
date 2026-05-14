@@ -3,15 +3,8 @@
 import { useState, useMemo } from "react";
 import { Search, ChevronRight } from "lucide-react";
 import ParkingCard from "@/components/driver/ParkingCard";
-import FilterDropdown from "@/components/driver/FilterDropdown";
+import FilterDropdown, { type Filters } from "@/components/driver/FilterDropdown";
 import { PARKING_SLOTS } from "@/lib/mock-data";
-import type { Amenity, VehicleType } from "@/lib/types";
-
-interface Filters {
-  maxPrice: string;
-  amenities: Amenity[];
-  vehicleTypes: VehicleType[];
-}
 
 const DEFAULT_FILTERS: Filters = { maxPrice: "", amenities: [], vehicleTypes: [] };
 

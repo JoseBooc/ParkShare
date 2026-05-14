@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { User, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 import NotificationBell from "@/components/ui/NotificationBell";
 
 export default function DriverNavbar() {
@@ -14,9 +15,15 @@ export default function DriverNavbar() {
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
       {/* Logo */}
-      <Link href="/driver" className="flex items-center gap-1">
-        <span className="text-xl font-bold text-park-navy">Park</span>
-        <span className="text-xl font-bold text-park-teal">Share</span>
+      <Link href="/driver" className="flex items-center">
+        <Image
+          src="/logo.png"
+          alt="ParkShare"
+          width={140}
+          height={36}
+          className="h-9 w-auto object-contain"
+          priority
+        />
       </Link>
 
       {/* Nav Links */}
