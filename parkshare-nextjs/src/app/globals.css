@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-park-navy: #1C3557;
+  --color-park-teal: #0CA5B5;
+  --color-park-teal-dark: #0891A0;
+  --color-park-teal-light: #E0F5F8;
+  --color-park-bg: #F3F7FB;
+  --color-park-gold: #F59E0B;
+}
+
+body {
+  background-color: #F3F7FB;
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  color: #1a1a1a;
+}
+
+* {
+  box-sizing: border-box;
+}
