@@ -1,14 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, User } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  User,
+  CalendarCheck,
+  Clock3,
+} from "lucide-react";
 import Link from "next/link";
 import { CALENDAR_EVENTS } from "@/lib/mock-data";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function getDaysInMonth(year: number, month: number) {
@@ -21,11 +39,15 @@ function getFirstDayOfMonth(year: number, month: number) {
 
 export default function CalendarPage() {
   const today = new Date();
+
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+
   const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
 
   function prevMonth() {
@@ -47,7 +69,10 @@ export default function CalendarPage() {
   }
 
   function dateKey(day: number) {
-    return `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return `${currentYear}-${String(currentMonth + 1).padStart(
+      2,
+      "0"
+    )}-${String(day).padStart(2, "0")}`;
   }
 
   function hasEvent(day: number) {
@@ -65,167 +90,201 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="p-6 max-w-lg">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <main className="min-h-screen bg-white">
+      <header className="flex flex-col gap-5 border-b border-gray-100 bg-[#eefbfd] px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-park-navy">Calendar</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Manage your bookings</p>
+          <p className="text-sm font-bold uppercase tracking-wide text-park-teal">
+            Booking Management
+          </p>
+
+          <h1 className="mt-1 text-3xl font-extrabold text-park-navy">
+            Calendar
+          </h1>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Manage reservations and upcoming schedules.
+          </p>
         </div>
+
         <div className="flex items-center gap-3">
           <Link
             href="/host/slots/add"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-park-teal text-white text-sm font-semibold hover:bg-park-teal-dark transition-colors"
+            className="flex items-center gap-2 rounded-full bg-park-teal px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark"
           >
-            <Plus size={16} /> Add Slot
+            <Plus size={16} />
+            Add Slot
           </Link>
-          <div className="w-9 h-9 rounded-full bg-park-teal flex items-center justify-center">
-            <User size={16} className="text-white" />
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-park-navy bg-white">
+            <User size={17} className="text-park-navy" />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Calendar */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-5">
-        {/* Month Navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={prevMonth} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
-            <ChevronLeft size={18} className="text-gray-600" />
-          </button>
-          <h2 className="font-bold text-park-navy">
-            {MONTHS[currentMonth]} {currentYear}
-          </h2>
-          <button onClick={nextMonth} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors">
-            <ChevronRight size={18} className="text-gray-600" />
-          </button>
-        </div>
+      <section className="grid gap-6 px-8 py-8 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+          <div className="mb-6 flex items-center justify-between">
+            <button
+              onClick={prevMonth}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 transition-colors hover:bg-gray-50"
+            >
+              <ChevronLeft size={18} className="text-gray-600" />
+            </button>
 
-        {/* Day Headers */}
-        <div className="grid grid-cols-7 mb-2">
-          {DAYS_OF_WEEK.map((d) => (
-            <div key={d} className="text-center text-xs font-semibold text-gray-400 py-1">
-              {d}
-            </div>
-          ))}
-        </div>
+            <h2 className="text-xl font-extrabold text-park-navy">
+              {MONTHS[currentMonth]} {currentYear}
+            </h2>
 
-        {/* Days */}
-        <div className="grid grid-cols-7 gap-0.5">
-          {Array.from({ length: firstDay }).map((_, i) => (
-            <div key={`empty-${i}`} />
-          ))}
-          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
-            const dk = dateKey(day);
-            const isToday =
-              day === today.getDate() &&
-              currentMonth === today.getMonth() &&
-              currentYear === today.getFullYear();
-            const isSelected = dk === selectedDate;
-            const hasEv = hasEvent(day);
+            <button
+              onClick={nextMonth}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 transition-colors hover:bg-gray-50"
+            >
+              <ChevronRight size={18} className="text-gray-600" />
+            </button>
+          </div>
 
-            return (
-              <button
-                key={day}
-                onClick={() => setSelectedDate(dk === selectedDate ? null : dk)}
-                className={`aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-medium transition-colors relative ${
-                  isSelected
-                    ? "bg-park-navy text-white"
-                    : isToday
-                    ? "bg-park-teal text-white"
-                    : "hover:bg-gray-50 text-gray-700"
-                }`}
+          <div className="mb-3 grid grid-cols-7">
+            {DAYS_OF_WEEK.map((d) => (
+              <div
+                key={d}
+                className="py-2 text-center text-xs font-bold uppercase tracking-wide text-gray-400"
               >
-                {day}
-                {hasEv && (
-                  <span
-                    className={`absolute bottom-1 w-1 h-1 rounded-full ${
-                      isSelected || isToday ? "bg-white" : "bg-park-teal"
+                {d}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-2">
+            {Array.from({ length: firstDay }).map((_, i) => (
+              <div key={`empty-${i}`} />
+            ))}
+
+            {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(
+              (day) => {
+                const dk = dateKey(day);
+
+                const isToday =
+                  day === today.getDate() &&
+                  currentMonth === today.getMonth() &&
+                  currentYear === today.getFullYear();
+
+                const isSelected = dk === selectedDate;
+
+                const hasEv = hasEvent(day);
+
+                return (
+                  <button
+                    key={day}
+                    onClick={() =>
+                      setSelectedDate(
+                        dk === selectedDate ? null : dk
+                      )
+                    }
+                    className={`relative aspect-square rounded-2xl text-sm font-bold transition-all duration-200 ${
+                      isSelected
+                        ? "bg-park-navy text-white shadow-md"
+                        : isToday
+                        ? "bg-park-teal text-white"
+                        : "bg-[#eefbfd] text-park-navy hover:bg-park-teal-light"
                     }`}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                  >
+                    <div className="flex h-full flex-col items-center justify-center">
+                      {day}
 
-      {/* Events for selected date */}
-      {selectedDate && (
-        <div>
-          <h3 className="font-bold text-park-navy mb-3 text-sm">
-            Bookings for {selectedDate}
-          </h3>
-          {selectedEvents.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6 bg-white rounded-xl border border-gray-100">
-              No bookings on this date
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {selectedEvents.map((evt) => (
+                      {hasEv && (
+                        <span
+                          className={`mt-1 h-1.5 w-1.5 rounded-full ${
+                            isSelected || isToday
+                              ? "bg-white"
+                              : "bg-park-teal"
+                          }`}
+                        />
+                      )}
+                    </div>
+                  </button>
+                );
+              }
+            )}
+          </div>
+        </div>
+
+        <aside className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
+              <CalendarCheck size={20} />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-extrabold text-park-navy">
+                {selectedDate
+                  ? "Selected Day"
+                  : "Upcoming Bookings"}
+              </h3>
+
+              <p className="text-sm text-gray-400">
+                {selectedDate
+                  ? selectedDate
+                  : `${CALENDAR_EVENTS.length} upcoming reservations`}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {(selectedDate
+              ? selectedEvents
+              : CALENDAR_EVENTS
+            ).length === 0 ? (
+              <div className="rounded-2xl bg-[#eefbfd] p-8 text-center">
+                <p className="font-bold text-park-navy">
+                  No reservations found
+                </p>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  There are no bookings scheduled.
+                </p>
+              </div>
+            ) : (
+              (selectedDate
+                ? selectedEvents
+                : CALENDAR_EVENTS
+              ).map((evt) => (
                 <div
                   key={evt.id}
-                  className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm"
+                  className="rounded-2xl border border-gray-100 bg-[#eefbfd] p-4 transition-all hover:shadow-sm"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-park-navy text-sm">{evt.driverName}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{evt.slotName}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {evt.startTime} – {evt.endTime}
+                      <p className="font-bold text-park-navy">
+                        {evt.driverName}
                       </p>
+
+                      <p className="mt-1 text-sm text-gray-500">
+                        {evt.slotName}
+                      </p>
+
+                      <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                        <Clock3 size={13} />
+                        <span>
+                          {evt.date} · {evt.startTime} – {evt.endTime}
+                        </span>
+                      </div>
                     </div>
+
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      className={`rounded-full px-3 py-1 text-xs font-bold ${
                         STATUS_COLORS[evt.status]
                       }`}
                     >
-                      {evt.status.charAt(0).toUpperCase() + evt.status.slice(1)}
+                      {evt.status.charAt(0).toUpperCase() +
+                        evt.status.slice(1)}
                     </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* All upcoming events */}
-      {!selectedDate && (
-        <div>
-          <h3 className="font-bold text-park-navy mb-3 text-sm">Upcoming Bookings</h3>
-          {CALENDAR_EVENTS.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6 bg-white rounded-xl border border-gray-100">
-              No upcoming bookings
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {CALENDAR_EVENTS.map((evt) => (
-                <div
-                  key={evt.id}
-                  className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-park-navy text-sm">{evt.driverName}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{evt.slotName}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {evt.date} · {evt.startTime} – {evt.endTime}
-                      </p>
-                    </div>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        STATUS_COLORS[evt.status]
-                      }`}
-                    >
-                      {evt.status.charAt(0).toUpperCase() + evt.status.slice(1)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+              ))
+            )}
+          </div>
+        </aside>
+      </section>
+    </main>
   );
 }

@@ -1,191 +1,365 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, User, Send } from "lucide-react";
+import {
+  Plus,
+  User,
+  Send,
+  MessageCircle,
+  Search,
+} from "lucide-react";
+
 import Link from "next/link";
+
 import { MESSAGES } from "@/lib/mock-data";
+
 import type { Message } from "@/lib/types";
 
 export default function MessagesPage() {
   const [messages, setMessages] = useState<Message[]>(MESSAGES);
+
   const [selected, setSelected] = useState<Message | null>(null);
+
   const [reply, setReply] = useState("");
-  const [chatHistory, setChatHistory] = useState<Record<string, { from: "host" | "driver"; text: string; time: string }[]>>({
+
+  const [search, setSearch] = useState("");
+
+  const [chatHistory, setChatHistory] = useState<
+    Record<
+      string,
+      {
+        from: "host" | "driver";
+        text: string;
+        time: string;
+      }[]
+    >
+  >({
     "msg-1": [
-      { from: "driver", text: "Hi! Is the slot still available for tomorrow?", time: "2 min ago" },
+      {
+        from: "driver",
+        text: "Hi! Is the slot still available for tomorrow?",
+        time: "2 min ago",
+      },
     ],
+
     "msg-2": [
-      { from: "driver", text: "Is overnight parking allowed? I'll be there by midnight.", time: "1 hour ago" },
+      {
+        from: "driver",
+        text: "Is overnight parking allowed? I'll be there by midnight.",
+        time: "1 hour ago",
+      },
     ],
+
     "msg-3": [
-      { from: "driver", text: "Thank you for confirming my booking. See you tomorrow!", time: "Yesterday" },
-      { from: "host", text: "You're welcome! The slot will be ready for you. Safe travels.", time: "Yesterday" },
+      {
+        from: "driver",
+        text: "Thank you for confirming my booking. See you tomorrow!",
+        time: "Yesterday",
+      },
+
+      {
+        from: "host",
+        text: "You're welcome! The slot will be ready for you.",
+        time: "Yesterday",
+      },
     ],
+
     "msg-4": [
-      { from: "driver", text: "Can I extend my booking by 2 more hours?", time: "2 days ago" },
-      { from: "host", text: "Yes, that's fine! I'll update your booking now.", time: "2 days ago" },
+      {
+        from: "driver",
+        text: "Can I extend my booking by 2 more hours?",
+        time: "2 days ago",
+      },
+
+      {
+        from: "host",
+        text: "Yes, that's fine! I'll update your booking now.",
+        time: "2 days ago",
+      },
     ],
   });
 
   function handleSelect(msg: Message) {
     setSelected(msg);
-    // Mark as read
+
     setMessages((prev) =>
-      prev.map((m) => (m.id === msg.id ? { ...m, read: true } : m))
+      prev.map((m) =>
+        m.id === msg.id ? { ...m, read: true } : m
+      )
     );
   }
 
   function handleSend() {
     if (!reply.trim() || !selected) return;
+
     setChatHistory((prev) => ({
       ...prev,
+
       [selected.id]: [
         ...(prev[selected.id] || []),
-        { from: "host", text: reply.trim(), time: "Just now" },
+
+        {
+          from: "host",
+          text: reply.trim(),
+          time: "Just now",
+        },
       ],
     }));
+
     setReply("");
   }
 
   const unreadCount = messages.filter((m) => !m.read).length;
 
+  const filteredMessages = messages.filter((msg) =>
+    msg.fromName.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="p-6 max-w-3xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <main className="min-h-screen bg-white">
+      <header className="flex flex-col gap-5 border-b border-gray-100 bg-[#eefbfd] px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-park-navy">Message Inbox</h1>
-          {unreadCount > 0 && (
-            <p className="text-sm text-gray-400 mt-0.5">{unreadCount} unread messages</p>
-          )}
+          <p className="text-sm font-bold uppercase tracking-wide text-park-teal">
+            Host Communication
+          </p>
+
+          <h1 className="mt-1 text-3xl font-extrabold text-park-navy">
+            Message Inbox
+          </h1>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Manage client conversations and booking concerns.
+          </p>
         </div>
+
         <div className="flex items-center gap-3">
           <Link
             href="/host/slots/add"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-park-teal text-white text-sm font-semibold hover:bg-park-teal-dark transition-colors"
+            className="flex items-center gap-2 rounded-full bg-park-teal px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark"
           >
-            <Plus size={16} /> Add Slot
+            <Plus size={16} />
+            Add Slot
           </Link>
-          <div className="w-9 h-9 rounded-full bg-park-teal flex items-center justify-center">
-            <User size={16} className="text-white" />
+
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-park-navy bg-white">
+            <User size={17} className="text-park-navy" />
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex gap-4 h-[600px]">
-        {/* Message List */}
-        <div className="w-64 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col flex-shrink-0">
-          <div className="p-3 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              Conversations
+      <section className="px-8 py-8">
+        <div className="mb-6 grid gap-5 md:grid-cols-3">
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
+              <MessageCircle size={20} />
+            </div>
+
+            <p className="text-sm font-semibold text-gray-400">
+              Total Conversations
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-park-navy">
+              {messages.length}
             </p>
           </div>
-          <ul className="flex-1 overflow-y-auto divide-y divide-gray-50">
-            {messages.map((msg) => (
-              <li key={msg.id}>
-                <button
-                  onClick={() => handleSelect(msg)}
-                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                    selected?.id === msg.id ? "bg-park-teal-light/50" : ""
-                  } ${!msg.read ? "bg-park-teal-light/30" : ""}`}
-                >
-                  <div className="flex items-start gap-2">
-                    <div className="w-8 h-8 rounded-full bg-park-teal-light flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <User size={14} className="text-park-teal" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-park-navy truncate">
-                          {msg.fromName}
-                        </p>
-                        {!msg.read && (
-                          <span className="w-2 h-2 rounded-full bg-park-teal flex-shrink-0 ml-1" />
-                        )}
-                      </div>
-                      {msg.slotName && (
-                        <p className="text-[10px] text-park-teal truncate">{msg.slotName}</p>
-                      )}
-                      <p className="text-[11px] text-gray-400 truncate mt-0.5">{msg.preview}</p>
-                      <p className="text-[10px] text-gray-300 mt-0.5">{msg.date}</p>
-                    </div>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
+              <MessageCircle size={20} />
+            </div>
+
+            <p className="text-sm font-semibold text-gray-400">
+              Unread Messages
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-park-navy">
+              {unreadCount}
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
+              <User size={20} />
+            </div>
+
+            <p className="text-sm font-semibold text-gray-400">
+              Active Drivers
+            </p>
+
+            <p className="mt-1 text-3xl font-extrabold text-park-navy">
+              {messages.length}
+            </p>
+          </div>
         </div>
 
-        {/* Chat Window */}
-        <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-          {selected ? (
-            <>
-              {/* Chat Header */}
-              <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-park-teal-light flex items-center justify-center">
-                  <User size={16} className="text-park-teal" />
-                </div>
-                <div>
-                  <p className="font-semibold text-park-navy text-sm">{selected.fromName}</p>
-                  {selected.slotName && (
-                    <p className="text-xs text-park-teal">{selected.slotName}</p>
-                  )}
-                </div>
-              </div>
+        <div className="flex h-[720px] overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+          <aside className="flex w-[340px] flex-col border-r border-gray-100 bg-[#eefbfd]">
+            <div className="border-b border-gray-100 p-5">
+              <div className="relative">
+                <Search
+                  size={16}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                />
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-                {(chatHistory[selected.id] || []).map((chat, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${chat.from === "host" ? "justify-end" : "justify-start"}`}
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search messages"
+                  className="w-full rounded-full border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition-colors focus:border-park-teal"
+                />
+              </div>
+            </div>
+
+            <ul className="flex-1 overflow-y-auto">
+              {filteredMessages.map((msg) => (
+                <li key={msg.id}>
+                  <button
+                    onClick={() => handleSelect(msg)}
+                    className={`w-full border-b border-white/60 px-5 py-4 text-left transition-all hover:bg-white ${
+                      selected?.id === msg.id
+                        ? "bg-white"
+                        : ""
+                    }`}
                   >
-                    <div
-                      className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
-                        chat.from === "host"
-                          ? "bg-park-navy text-white rounded-br-sm"
-                          : "bg-gray-100 text-gray-700 rounded-bl-sm"
-                      }`}
-                    >
-                      <p>{chat.text}</p>
-                      <p
-                        className={`text-[10px] mt-1 ${
-                          chat.from === "host" ? "text-white/60" : "text-gray-400"
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-sm">
+                        <User size={16} className="text-park-teal" />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-sm font-bold text-park-navy">
+                            {msg.fromName}
+                          </p>
+
+                          {!msg.read && (
+                            <span className="h-2.5 w-2.5 rounded-full bg-park-teal" />
+                          )}
+                        </div>
+
+                        {msg.slotName && (
+                          <p className="mt-0.5 truncate text-xs font-semibold text-park-teal">
+                            {msg.slotName}
+                          </p>
+                        )}
+
+                        <p className="mt-1 truncate text-xs text-gray-500">
+                          {msg.preview}
+                        </p>
+
+                        <p className="mt-1 text-[11px] text-gray-400">
+                          {msg.date}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+
+          <section className="flex flex-1 flex-col bg-white">
+            {selected ? (
+              <>
+                <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-park-teal-light">
+                    <User size={18} className="text-park-teal" />
+                  </div>
+
+                  <div>
+                    <p className="font-bold text-park-navy">
+                      {selected.fromName}
+                    </p>
+
+                    {selected.slotName && (
+                      <p className="text-sm text-park-teal">
+                        {selected.slotName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-4 overflow-y-auto bg-[#f9fdfd] px-6 py-6">
+                  {(chatHistory[selected.id] || []).map(
+                    (chat, i) => (
+                      <div
+                        key={i}
+                        className={`flex ${
+                          chat.from === "host"
+                            ? "justify-end"
+                            : "justify-start"
                         }`}
                       >
-                        {chat.time}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                        <div
+                          className={`max-w-[75%] rounded-3xl px-5 py-3 text-sm shadow-sm ${
+                            chat.from === "host"
+                              ? "rounded-br-md bg-park-navy text-white"
+                              : "rounded-bl-md bg-white text-gray-700"
+                          }`}
+                        >
+                          <p>{chat.text}</p>
 
-              {/* Reply Input */}
-              <div className="px-4 py-3 border-t border-gray-100 flex items-center gap-2">
-                <input
-                  value={reply}
-                  onChange={(e) => setReply(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Type a message..."
-                  className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm outline-none focus:border-park-teal transition-colors"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={!reply.trim()}
-                  className="w-9 h-9 rounded-full bg-park-teal text-white flex items-center justify-center hover:bg-park-teal-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send size={15} />
-                </button>
+                          <p
+                            className={`mt-2 text-[11px] ${
+                              chat.from === "host"
+                                ? "text-white/60"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {chat.time}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+
+                <div className="border-t border-gray-100 bg-white px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      value={reply}
+                      onChange={(e) =>
+                        setReply(e.target.value)
+                      }
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleSend()
+                      }
+                      placeholder="Type your message..."
+                      className="flex-1 rounded-full border border-gray-200 px-5 py-3 text-sm outline-none transition-colors focus:border-park-teal"
+                    />
+
+                    <button
+                      onClick={handleSend}
+                      disabled={!reply.trim()}
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-park-teal text-white transition-colors hover:bg-park-teal-dark disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Send size={18} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center text-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#eefbfd]">
+                  <MessageCircle
+                    size={34}
+                    className="text-park-teal"
+                  />
+                </div>
+
+                <h3 className="mt-5 text-xl font-extrabold text-park-navy">
+                  No Conversation Selected
+                </h3>
+
+                <p className="mt-2 max-w-sm text-sm text-gray-500">
+                  Select a conversation from the left to view
+                  messages and reply to drivers.
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-              <User size={48} className="text-gray-200 mb-3" />
-              <p className="font-medium">Select a conversation</p>
-              <p className="text-sm mt-1">Choose a message from the left to reply</p>
-            </div>
-          )}
+            )}
+          </section>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

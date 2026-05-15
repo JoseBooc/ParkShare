@@ -1,10 +1,14 @@
 import HostSidebar from "@/components/host/HostSidebar";
 
-export default function HostLayout({ children }: { children: React.ReactNode }) {
+export default function HostLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex min-h-screen bg-park-bg">
+    <div className="flex min-h-screen bg-[#f7fafc]">
       <HostSidebar />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

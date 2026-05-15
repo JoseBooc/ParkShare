@@ -2,33 +2,58 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
-  Plus,
   Upload,
   Check,
-  User,
   MapPin,
   Camera,
 } from "lucide-react";
-import type { Amenity, VehicleType } from "@/lib/types";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
-const AMENITIES: Amenity[] = ["CCTV", "EV Charging", "Sheltered", "Security Guard", "24/7 Access"];
-const VEHICLE_TYPES: VehicleType[] = ["Sedan", "SUV", "Pickup Truck", "Motorcycle", "Van", "PUV"];
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
-const DAY_KEYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+const VEHICLE_TYPES = [
+  "Sedan",
+  "SUV",
+  "Pickup Truck",
+  "Motorcycle",
+  "Van",
+  "PUV",
+];
 
-interface DayConfig {
-  open: boolean;
-  from: string;
-  to: string;
-}
+const AMENITIES = [
+  "CCTV",
+  "Sheltered",
+  "24/7 Access",
+  "EV Charging",
+  "Security Guard",
+];
 
-const DEFAULT_DAY: DayConfig = { open: true, from: "08:00", to: "23:00" };
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const HOURS = [
+  "1:00",
+  "2:00",
+  "3:00",
+  "4:00",
+  "5:00",
+  "6:00",
+  "7:00",
+  "8:00",
+  "9:00",
+  "10:00",
+  "11:00",
+  "12:00",
+];
 
 export default function AddSlotPage() {
   const router = useRouter();
@@ -36,465 +61,443 @@ export default function AddSlotPage() {
 
   const [step, setStep] = useState<Step>(1);
 
-  // Step 1: Photos
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  // Step 2: Location
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [city, setCity] = useState("");
-  const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>(["Sedan"]);
 
-  // Step 3: Pricing
   const [hourlyRate, setHourlyRate] = useState("");
-  const [amenities, setAmenities] = useState<Amenity[]>([]);
 
-  // Step 4: Availability
-  const [open24_7, setOpen24_7] = useState(false);
-  const [days, setDays] = useState<Record<string, DayConfig>>(
-    Object.fromEntries(DAY_KEYS.map((d) => [d, { ...DEFAULT_DAY }]))
+  const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+
+  const [open247, setOpen247] = useState(false);
+
+  const [timeSettings, setTimeSettings] = useState(
+    DAYS.map((day) => ({
+      day,
+      from: "8:00",
+      fromPeriod: "AM",
+      to: "11:00",
+      toPeriod: "PM",
+    }))
   );
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-    setPhotos((prev) => [...prev, ...files]);
-    files.forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = (ev) =>
-          setPhotoPreviews((prev) => [...prev, ev.target?.result as string]);
-        reader.readAsDataURL(file);
-      }
-    });
+  function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setPhotoPreview(reader.result as string);
+    };
+
+    reader.readAsDataURL(file);
   }
 
-  function toggleVehicle(v: VehicleType) {
-    setVehicleTypes((prev) =>
-      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
+  function toggleVehicle(vehicle: string) {
+    setSelectedVehicles((prev) =>
+      prev.includes(vehicle)
+        ? prev.filter((v) => v !== vehicle)
+        : [...prev, vehicle]
     );
   }
 
-  function toggleAmenity(a: Amenity) {
-    setAmenities((prev) =>
-      prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
+  function toggleAmenity(amenity: string) {
+    setSelectedAmenities((prev) =>
+      prev.includes(amenity)
+        ? prev.filter((a) => a !== amenity)
+        : [...prev, amenity]
     );
   }
 
-  function toggleDay(key: string) {
-    setDays((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], open: !prev[key].open },
-    }));
+  function updateTime(index: number, field: string, value: string) {
+    setTimeSettings((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    );
   }
 
-  function updateDayTime(key: string, field: "from" | "to", value: string) {
-    setDays((prev) => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
+  function handleAmountChange(value: string) {
+    const numbersOnly = value.replace(/\D/g, "");
+    setHourlyRate(numbersOnly);
   }
-
-  function handlePublish() {
-    router.push("/host/slots");
-  }
-
-  const TOTAL_STEPS = 5;
 
   return (
-    <div className="min-h-screen flex flex-col p-6 max-w-lg">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-[#f7fafc] px-6 py-8">
+      <div className="mx-auto max-w-3xl">
+        {/* HEADER */}
+        <div className="mb-8 flex items-center justify-between">
           <button
-            onClick={() => (step > 1 ? setStep((s) => (s - 1) as Step) : router.back())}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-park-navy transition-colors"
+            onClick={() =>
+              step > 1 ? setStep((step - 1) as Step) : router.back()
+            }
+            className="flex items-center gap-2 text-lg font-semibold text-gray-500 hover:text-[#202b7b]"
           >
-            <ChevronLeft size={16} /> Back
+            <ChevronLeft size={22} />
+            Back
           </button>
-          <div>
-            <h1 className="font-bold text-park-navy">List Your Parking Slot</h1>
-            <p className="text-xs text-gray-400">
-              Step {step} of {TOTAL_STEPS}
+
+          <div className="text-right">
+            <h1 className="text-4xl font-black text-[#202b7b]">
+              List Your Parking Slot
+            </h1>
+
+            <p className="mt-1 text-lg font-semibold text-gray-400">
+              Step {step} of 5
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/host/slots/add"
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-park-teal text-white text-xs font-semibold"
-          >
-            <Plus size={12} /> Add Slot
-          </Link>
-          <div className="w-8 h-8 rounded-full bg-park-teal flex items-center justify-center">
-            <User size={14} className="text-white" />
-          </div>
-        </div>
-      </div>
 
-      {/* Step 1: Photos */}
-      {step === 1 && (
-        <div className="flex-1">
-          <h2 className="text-xl font-extrabold text-park-navy mb-1">Show drivers your space</h2>
-          <p className="text-sm text-gray-400 mb-6">Upload clear photos of your parking slot.</p>
+        {/* CARD */}
+        <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm">
+          {/* STEP 1 */}
+          {step === 1 && (
+            <>
+              <h2 className="text-3xl font-black text-[#202b7b]">
+                Show Drivers Your Space
+              </h2>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handlePhotoChange}
-            className="hidden"
-          />
+              <p className="mb-6 mt-2 text-lg text-gray-400">
+                Upload clear photos of your parking slot.
+              </p>
 
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full border-2 border-dashed border-park-teal/40 rounded-2xl p-10 flex flex-col items-center gap-3 hover:border-park-teal hover:bg-park-teal-light/30 transition-colors mb-4"
-          >
-            {photoPreviews.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2 w-full">
-                {photoPreviews.map((src, i) => (
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handlePhoto}
+              />
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex h-[320px] w-full items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-[#45c4d9] hover:bg-cyan-50"
+              >
+                {photoPreview ? (
                   <img
-                    key={i}
-                    src={src}
-                    alt={`Preview ${i + 1}`}
-                    className="rounded-xl object-cover aspect-square w-full"
+                    src={photoPreview}
+                    className="h-full w-full object-cover"
                   />
-                ))}
-              </div>
-            ) : (
-              <>
-                <Upload size={36} className="text-park-teal" />
-                <span className="font-semibold text-park-navy">Show drivers your space</span>
-                <span className="text-xs text-gray-400">Upload clear photos of your parking slot.</span>
-              </>
-            )}
-          </button>
+                ) : (
+                  <div className="text-center">
+                    <Upload
+                      size={44}
+                      className="mx-auto mb-3 text-[#45c4d9]"
+                    />
 
-          {photos.length > 0 && (
-            <p className="text-xs text-park-teal mb-4 flex items-center gap-1">
-              <Check size={12} /> {photos.length} photo{photos.length > 1 ? "s" : ""} selected
-            </p>
+                    <p className="text-xl font-bold text-[#202b7b]">
+                      Upload Photo
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-400">
+                      JPG or PNG supported
+                    </p>
+                  </div>
+                )}
+              </button>
+
+              <button
+                onClick={() => setStep(2)}
+                className="mt-8 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#45c4d9] font-bold text-white"
+              >
+                Continue
+                <ChevronRight size={18} />
+              </button>
+            </>
           )}
 
-          <button
-            onClick={() => setStep(2)}
-            className="w-full py-3 rounded-full bg-park-teal text-white font-semibold flex items-center justify-center gap-1 hover:bg-park-teal-dark transition-colors"
-          >
-            Continue <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
+          {/* STEP 2 */}
+          {step === 2 && (
+            <>
+              <h2 className="text-3xl font-black text-[#202b7b]">
+                Parking Slot Location
+              </h2>
 
-      {/* Step 2: Location */}
-      {step === 2 && (
-        <div className="flex-1">
-          <h2 className="text-xl font-extrabold text-park-navy mb-1">Parking Slot Location</h2>
-          <p className="text-sm text-gray-400 mb-6">Tell drivers where your slot is.</p>
+              <p className="mb-6 mt-2 text-lg text-gray-400">
+                Tell drivers where your slot is.
+              </p>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-bold text-park-navy mb-1">Name</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Slot 1"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-park-teal transition-colors bg-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-park-navy mb-1">Address</label>
-              <input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="C. M. Recto St, Poblacion District"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-park-teal transition-colors bg-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-park-navy mb-1">Description</label>
-              <input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g. Clean and spacious slot near the main road."
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-park-teal transition-colors bg-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-park-navy mb-1">City</label>
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Davao"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-park-teal transition-colors bg-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-park-navy mb-2">
+              <div className="space-y-5">
+                <input
+                  placeholder="Slot Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-14 w-full rounded-2xl border border-gray-200 px-5 outline-none focus:border-cyan-400"
+                />
+
+                <input
+                  placeholder="Address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="h-14 w-full rounded-2xl border border-gray-200 px-5 outline-none focus:border-cyan-400"
+                />
+
+                <textarea
+                  placeholder="Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="h-32 w-full resize-none rounded-2xl border border-gray-200 p-5 outline-none focus:border-cyan-400"
+                />
+
+                <input
+                  placeholder="City"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="h-14 w-full rounded-2xl border border-gray-200 px-5 outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <p className="mb-3 mt-6 font-bold text-[#202b7b]">
                 Vehicle Compatibility
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {VEHICLE_TYPES.map((v) => (
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                {VEHICLE_TYPES.map((vehicle) => (
                   <button
-                    key={v}
-                    onClick={() => toggleVehicle(v)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      vehicleTypes.includes(v)
-                        ? "bg-park-teal text-white border-park-teal"
-                        : "bg-white text-gray-600 border-gray-200 hover:border-park-teal"
+                    key={vehicle}
+                    onClick={() => toggleVehicle(vehicle)}
+                    className={`h-11 rounded-full border px-4 ${
+                      selectedVehicles.includes(vehicle)
+                        ? "border-[#45c4d9] bg-[#45c4d9] text-white"
+                        : "border-gray-200 bg-white text-gray-600"
                     }`}
                   >
-                    {v}
+                    {vehicle}
                   </button>
                 ))}
               </div>
-            </div>
-          </div>
 
-          <button
-            onClick={() => setStep(3)}
-            className="w-full py-3 rounded-full bg-park-teal text-white font-semibold flex items-center justify-center gap-1 hover:bg-park-teal-dark transition-colors mt-6"
-          >
-            Continue <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
-
-      {/* Step 3: Pricing */}
-      {step === 3 && (
-        <div className="flex-1">
-          <h2 className="text-xl font-extrabold text-park-navy mb-1">Set Pricing</h2>
-          <p className="text-sm text-gray-400 mb-6">Set your hourly rate and amenities.</p>
-
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-bold text-park-navy mb-1">Hourly Rate</label>
-              <input
-                type="number"
-                value={hourlyRate}
-                onChange={(e) => setHourlyRate(e.target.value)}
-                placeholder="Php 35"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-park-teal transition-colors bg-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-park-navy mb-2">Amenities</label>
-              <div className="grid grid-cols-2 gap-2">
-                {AMENITIES.map((a) => (
-                  <label key={a} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={amenities.includes(a)}
-                      onChange={() => toggleAmenity(a)}
-                      className="rounded accent-park-teal"
-                    />
-                    <span className="text-sm text-gray-700">{a}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setStep(4)}
-            className="w-full py-3 rounded-full bg-park-teal text-white font-semibold flex items-center justify-center gap-1 hover:bg-park-teal-dark transition-colors mt-6"
-          >
-            Continue <ChevronRight size={16} />
-          </button>
-        </div>
-      )}
-
-      {/* Step 4: Availability */}
-      {step === 4 && (
-        <div className="flex-1">
-          <h2 className="text-xl font-extrabold text-park-navy mb-1">Set Availability</h2>
-          <p className="text-sm text-gray-400 mb-6">Set your operating hours.</p>
-
-          {/* Open 24/7 Toggle */}
-          <div className="flex items-center justify-between mb-5 p-3 bg-white rounded-xl border border-gray-200">
-            <div>
-              <p className="font-semibold text-park-navy text-sm">Open 24/7</p>
-              <p className="text-xs text-gray-400">Operating all day</p>
-            </div>
-            <button
-              onClick={() => setOpen24_7((v) => !v)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${
-                open24_7 ? "bg-park-teal" : "bg-gray-200"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                  open24_7 ? "translate-x-6" : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
-
-          {!open24_7 && (
-            <div className="space-y-3">
-              <p className="text-sm font-bold text-park-navy">Operating Hours</p>
-              {DAYS.map((day, i) => {
-                const key = DAY_KEYS[i];
-                const config = days[key];
-                return (
-                  <div
-                    key={day}
-                    className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100"
-                  >
-                    <button
-                      onClick={() => toggleDay(key)}
-                      className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${
-                        config.open ? "bg-park-teal" : "bg-gray-200"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                          config.open ? "translate-x-5" : "translate-x-0.5"
-                        }`}
-                      />
-                    </button>
-                    <span className="w-24 text-sm font-semibold text-park-navy">{day}</span>
-                    {config.open ? (
-                      <div className="flex items-center gap-2 text-sm text-gray-600 flex-1">
-                        <select
-                          value={config.from}
-                          onChange={(e) => updateDayTime(key, "from", e.target.value)}
-                          className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none focus:border-park-teal"
-                        >
-                          {Array.from({ length: 24 }, (_, h) => {
-                            const t = `${String(h).padStart(2, "0")}:00`;
-                            return (
-                              <option key={t} value={t}>
-                                {t}
-                              </option>
-                            );
-                          })}
-                        </select>
-                        <span>to</span>
-                        <select
-                          value={config.to}
-                          onChange={(e) => updateDayTime(key, "to", e.target.value)}
-                          className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none focus:border-park-teal"
-                        >
-                          {Array.from({ length: 24 }, (_, h) => {
-                            const t = `${String(h).padStart(2, "0")}:00`;
-                            return (
-                              <option key={t} value={t}>
-                                {t}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-400 flex-1">Closed</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+              <button
+                onClick={() => setStep(3)}
+                className="mt-8 h-14 w-full rounded-full bg-[#45c4d9] font-bold text-white"
+              >
+                Continue
+              </button>
+            </>
           )}
 
-          <button
-            onClick={() => setStep(5)}
-            className="w-full py-3 rounded-full bg-park-teal text-white font-semibold flex items-center justify-center gap-1 hover:bg-park-teal-dark transition-colors mt-6"
-          >
-            <Check size={16} /> Publish
-          </button>
-        </div>
-      )}
+          {/* STEP 3 */}
+          {step === 3 && (
+            <>
+              <h2 className="text-3xl font-black text-[#202b7b]">
+                Set Pricing
+              </h2>
 
-      {/* Step 5: Review Listing */}
-      {step === 5 && (
-        <div className="flex-1">
-          <h2 className="text-xl font-extrabold text-park-navy mb-1">Review Listing</h2>
-          <p className="text-sm text-gray-400 mb-6">Check everything before publishing.</p>
+              <p className="mb-6 mt-2 text-lg text-gray-400">
+                Set your hourly rate and amenities.
+              </p>
 
-          {/* Preview Card */}
-          <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 mb-5 shadow-sm">
-            {/* Photo preview */}
-            <div className="aspect-[16/9] bg-gradient-to-br from-park-teal-light to-park-teal/20 flex items-center justify-center">
-              {photoPreviews.length > 0 ? (
-                <img
-                  src={photoPreviews[0]}
-                  alt="Slot preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Camera size={40} className="text-park-teal/40" />
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="font-bold text-park-navy">{name || "Slot Name"}</h3>
-              <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
-                <MapPin size={11} />
-                <span>{address || "Address"}</span>
+              <input
+                inputMode="numeric"
+                value={hourlyRate}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                placeholder="35"
+                className="h-14 w-full rounded-2xl border border-gray-200 px-5 text-lg outline-none focus:border-cyan-400"
+              />
+
+              <p className="mb-4 mt-8 font-bold text-[#202b7b]">
+                Amenities
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                {AMENITIES.map((amenity) => (
+                  <button
+                    key={amenity}
+                    onClick={() => toggleAmenity(amenity)}
+                    className={`h-12 rounded-2xl border text-sm font-semibold ${
+                      selectedAmenities.includes(amenity)
+                        ? "border-[#45c4d9] bg-[#45c4d9] text-white"
+                        : "border-gray-200 bg-white text-gray-600"
+                    }`}
+                  >
+                    {amenity}
+                  </button>
+                ))}
               </div>
-              {amenities.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {amenities.map((a) => (
-                    <span
-                      key={a}
-                      className="text-xs px-2 py-0.5 rounded-full bg-park-teal-light text-park-teal"
+
+              <button
+                onClick={() => setStep(4)}
+                className="mt-8 h-14 w-full rounded-full bg-[#45c4d9] font-bold text-white"
+              >
+                Continue
+              </button>
+            </>
+          )}
+
+          {/* STEP 4 */}
+          {step === 4 && (
+            <>
+              <h2 className="text-3xl font-black text-[#202b7b]">
+                Set Availability
+              </h2>
+
+              <p className="mb-6 mt-2 text-lg text-gray-400">
+                Configure your operating hours.
+              </p>
+
+              {/* TOGGLE */}
+              <div className="mb-6 flex items-center justify-between rounded-2xl bg-[#f7fafc] p-5">
+                <div>
+                  <p className="font-bold text-[#202b7b]">
+                    Open 24/7
+                  </p>
+
+                  <p className="text-sm text-gray-400">
+                    Always available
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setOpen247(!open247)}
+                  className={`relative flex h-8 w-16 items-center overflow-hidden rounded-full transition-all ${
+                    open247 ? "bg-[#45c4d9]" : "bg-gray-300"
+                  }`}
+                >
+                  <span
+                    className={`absolute left-1 top-1 h-6 w-6 rounded-full bg-white transition-transform duration-300 ${
+                      open247 ? "translate-x-8" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {!open247 && (
+                <div className="space-y-4">
+                  {timeSettings.map((item, index) => (
+                    <div
+                      key={item.day}
+                      className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-2xl bg-[#f7fafc] px-5 py-4"
                     >
-                      {a}
-                    </span>
+                      <p className="font-bold text-[#202b7b]">
+                        {item.day}
+                      </p>
+
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={item.from}
+                          onChange={(e) =>
+                            updateTime(index, "from", e.target.value)
+                          }
+                          className="h-11 rounded-xl border border-gray-200 px-3"
+                        >
+                          {HOURS.map((h) => (
+                            <option key={h}>{h}</option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={item.fromPeriod}
+                          onChange={(e) =>
+                            updateTime(index, "fromPeriod", e.target.value)
+                          }
+                          className="h-11 rounded-xl border border-gray-200 px-3"
+                        >
+                          <option>AM</option>
+                          <option>PM</option>
+                        </select>
+
+                        <span className="text-gray-400">to</span>
+
+                        <select
+                          value={item.to}
+                          onChange={(e) =>
+                            updateTime(index, "to", e.target.value)
+                          }
+                          className="h-11 rounded-xl border border-gray-200 px-3"
+                        >
+                          {HOURS.map((h) => (
+                            <option key={h}>{h}</option>
+                          ))}
+                        </select>
+
+                        <select
+                          value={item.toPeriod}
+                          onChange={(e) =>
+                            updateTime(index, "toPeriod", e.target.value)
+                          }
+                          className="h-11 rounded-xl border border-gray-200 px-3"
+                        >
+                          <option>AM</option>
+                          <option>PM</option>
+                        </select>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Checklist */}
-          <div className="space-y-2 mb-6">
-            {[
-              {
-                label: "Photos uploaded",
-                value: photos.length > 0 ? `${photos.length} Photo${photos.length > 1 ? "s" : ""}` : "None",
-                done: photos.length > 0,
-              },
-              {
-                label: "Location set",
-                value: address || "—",
-                done: !!address,
-              },
-              {
-                label: "Pricing set",
-                value: hourlyRate ? `Php ${hourlyRate}/hr` : "—",
-                done: !!hourlyRate,
-              },
-              {
-                label: "Availability",
-                value: open24_7 ? "Open 24/7" : "Custom hours",
-                done: true,
-              },
-            ].map(({ label, value, done }) => (
-              <div
-                key={label}
-                className="flex items-center justify-between py-2 border-b border-gray-100"
+              <button
+                onClick={() => setStep(5)}
+                className="mt-8 h-14 w-full rounded-full bg-[#45c4d9] font-bold text-white"
               >
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      done ? "bg-park-teal" : "bg-gray-200"
-                    }`}
-                  >
-                    <Check size={11} className="text-white" />
-                  </div>
-                  <span className="text-sm text-gray-600">{label}</span>
-                </div>
-                <span className="text-sm font-semibold text-park-navy">{value}</span>
-              </div>
-            ))}
-          </div>
+                Continue
+              </button>
+            </>
+          )}
 
-          <button
-            onClick={handlePublish}
-            className="w-full py-3 rounded-full bg-park-teal text-white font-semibold flex items-center justify-center gap-1 hover:bg-park-teal-dark transition-colors"
-          >
-            <Check size={16} /> Publish
-          </button>
+          {/* STEP 5 */}
+          {step === 5 && (
+            <>
+              <h2 className="text-3xl font-black text-[#202b7b]">
+                Review Listing
+              </h2>
+
+              <p className="mb-6 mt-2 text-lg text-gray-400">
+                Check everything before publishing.
+              </p>
+
+              <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+                <div className="flex h-[260px] items-center justify-center bg-[#dff7fa]">
+                  {photoPreview ? (
+                    <img
+                      src={photoPreview}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Camera
+                      size={42}
+                      className="text-[#45c4d9]"
+                    />
+                  )}
+                </div>
+
+                <div className="p-6">
+                  <h3 className="text-2xl font-black text-[#202b7b]">
+                    {name || "Slot Name"}
+                  </h3>
+
+                  <div className="mt-2 flex items-center gap-2 text-gray-400">
+                    <MapPin size={16} />
+                    <span>{address || "Address"}</span>
+                  </div>
+
+                  <p className="mt-4 text-gray-500">
+                    {description || "No description added."}
+                  </p>
+
+                  <div className="mt-6 text-3xl font-black text-[#45c4d9]">
+                    ₱{hourlyRate || "0"}/hr
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => router.push("/host/slots")}
+                className="mt-8 h-14 w-full rounded-full bg-[#45c4d9] font-bold text-white"
+              >
+                <Check size={16} className="mr-2 inline" />
+                Publish Listing
+              </button>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
