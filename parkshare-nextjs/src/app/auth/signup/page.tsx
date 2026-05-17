@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,403 +9,162 @@ import {
   User,
   Mail,
   Lock,
+  Eye,
+  EyeOff,
   Phone,
-  ChevronRight,
-  ChevronLeft,
+  IdCard,
   Upload,
-  Shield,
-  Check,
 } from "lucide-react";
+
 type Role = "driver" | "host";
-type Step = 1 | 2 | 3 | 4;
 
 export default function SignupPage() {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [step, setStep] = useState<Step>(1);
   const [role, setRole] = useState<Role>("driver");
+  const [showPass, setShowPass] = useState(false);
 
-  // Step 2 fields
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [vehicleModel, setVehicleModel] = useState("");
-  const [vehicleColor, setVehicleColor] = useState("");
-  const [plateNumber, setPlateNumber] = useState("");
-
-  // Step 3 - file upload
-  const [licenseFile, setLicenseFile] = useState<File | null>(null);
-  const [licensePreview, setLicensePreview] = useState<string | null>(null);
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLicenseFile(file);
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setLicensePreview(ev.target?.result as string);
-      reader.readAsDataURL(file);
-    } else {
-      setLicensePreview(null);
-    }
-  }
-
-  function handleCreate() {
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     router.push(role === "driver" ? "/driver" : "/host");
   }
 
-  const totalSteps = 4;
-
   return (
-    <div className="w-full max-w-sm">
-      {/* Logo */}
-      <div className="flex flex-col items-center mb-6">
-        <Image
-          src="/logo-icon.png"
-          alt="ParkShare"
-          width={56}
-          height={56}
-          className="h-14 w-auto object-contain mb-2"
-          priority
-        />
-        <Image
-          src="/logo.png"
-          alt="ParkShare"
-          width={160}
-          height={40}
-          className="h-8 w-auto object-contain"
-        />
-        <p className="text-sm text-gray-500 mt-1">Parking made simple</p>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-[#f5f7fb] px-4 py-6">
+      <div className="w-full max-w-md">
+        <div className="rounded-[28px] border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex flex-col items-center">
+            <Image
+              src="/logo.png"
+              alt="ParkShare"
+              width={170}
+              height={55}
+              className="h-11 w-auto object-contain"
+              priority
+            />
+            <p className="mt-1 text-sm font-medium text-gray-500">
+              Parking made simple
+            </p>
+          </div>
 
-      <div className="bg-gray-100 rounded-2xl p-6 shadow-sm">
-        {/* Step 1: Role Selection */}
-        {step === 1 && (
-          <>
-            <h2 className="text-base font-bold text-park-navy">Create an account</h2>
-            <p className="text-xs text-gray-400 mb-5">Step 1 of {totalSteps}</p>
+          <h1 className="text-2xl font-black text-park-navy">
+            Create an account
+          </h1>
+          <p className="mb-4 mt-1 text-sm text-gray-400">
+            Sign up as a driver or host to continue.
+          </p>
 
-            <div className="flex gap-3 mb-6">
-              {(["driver", "host"] as Role[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRole(r)}
-                  className={`flex-1 flex flex-col items-center gap-1.5 py-4 rounded-xl border-2 transition-all ${
-                    role === r
-                      ? "border-park-teal bg-white text-park-teal"
-                      : "border-gray-200 bg-gray-50 text-gray-400 hover:border-gray-300"
-                  }`}
-                >
+          <div className="mb-4 grid grid-cols-2 gap-3">
+            {(["driver", "host"] as Role[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRole(r)}
+                className={`rounded-2xl border-2 px-3 py-4 text-center transition-all ${
+                  role === r
+                    ? "border-park-teal bg-white text-park-teal shadow-sm"
+                    : "border-gray-200 bg-gray-50 text-gray-400"
+                }`}
+              >
+                <div className="mb-2 flex justify-center">
                   {r === "driver" ? <Car size={22} /> : <User size={22} />}
-                  <span className="text-sm font-semibold">
-                    {r === "driver" ? "I'm a driver" : "I'm a host"}
-                  </span>
-                  <span className="text-[10px] text-gray-400">
-                    {r === "driver" ? "Find & book parking" : "Earn from your slot"}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <p className="text-center text-xs text-gray-400 mb-4">
-              You can switch between Driver and Host mode anytime from your profile.
-            </p>
-
-            <button
-              onClick={() => setStep(2)}
-              className="w-full py-3 rounded-full bg-park-navy text-white font-semibold text-sm flex items-center justify-center gap-1 hover:bg-park-navy/90 transition-colors"
-            >
-              Continue <ChevronRight size={16} />
-            </button>
-
-            <p className="text-center text-xs text-gray-400 mt-4">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="font-bold text-park-navy hover:underline">
-                Sign In
-              </Link>
-            </p>
-          </>
-        )}
-
-        {/* Step 2: Personal Info */}
-        {step === 2 && (
-          <>
-            <h2 className="text-base font-bold text-park-navy">Personal Information</h2>
-            <p className="text-xs text-gray-400 mb-4">Step 2 of {totalSteps}</p>
-
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">First Name</label>
-                  <div className="relative">
-                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-park-teal" />
-                    <input
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="First name"
-                      className="w-full pl-8 pr-2 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                    />
-                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Last Name</label>
-                  <div className="relative">
-                    <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-park-teal" />
-                    <input
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Last name"
-                      className="w-full pl-8 pr-2 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Email Address</label>
-                <div className="relative">
-                  <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-park-teal" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                  />
-                </div>
-              </div>
+                <p className="text-base font-black">
+                  {r === "driver" ? "Driver" : "Host"}
+                </p>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Phone Number</label>
-                <div className="relative">
-                  <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-park-teal" />
-                  <input
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="09XXXXXXXXX"
-                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Password</label>
-                <div className="relative">
-                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-park-teal" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                  />
-                </div>
-              </div>
-
-              {role === "driver" && (
-                <>
-                  <p className="text-xs font-bold text-park-teal pt-1">Vehicle Information</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Vehicle Model</label>
-                      <input
-                        value={vehicleModel}
-                        onChange={(e) => setVehicleModel(e.target.value)}
-                        placeholder="e.g. Toyota Vios"
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Color</label>
-                      <input
-                        value={vehicleColor}
-                        onChange={(e) => setVehicleColor(e.target.value)}
-                        placeholder="e.g. White"
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Plate Number</label>
-                    <input
-                      value={plateNumber}
-                      onChange={(e) => setPlateNumber(e.target.value)}
-                      placeholder="ABC 1234"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-gray-200 text-sm outline-none focus:border-park-teal transition-colors"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="flex gap-2 mt-5">
-              <button
-                onClick={() => setStep(1)}
-                className="flex items-center gap-1 px-4 py-2.5 rounded-full border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
-              >
-                <ChevronLeft size={14} /> Back
+                <p className="mt-1 text-xs text-gray-400">
+                  {r === "driver" ? "Book parking" : "List parking"}
+                </p>
               </button>
-              <button
-                onClick={() => setStep(3)}
-                className="flex-1 py-2.5 rounded-full bg-park-navy text-white font-semibold text-sm flex items-center justify-center gap-1 hover:bg-park-navy/90 transition-colors"
-              >
-                Continue <ChevronRight size={16} />
-              </button>
-            </div>
-          </>
-        )}
+            ))}
+          </div>
 
-        {/* Step 3: Identity Verification */}
-        {step === 3 && (
-          <>
-            <h2 className="text-base font-bold text-park-navy">Identity Verification</h2>
-            <p className="text-xs text-gray-400 mb-4">Step 3 of {totalSteps}</p>
-
-            {/* Security Note */}
-            <div className="flex items-start gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2.5 mb-4">
-              <Shield size={16} className="text-park-teal mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-gray-500">
-                Your documents are encrypted and stored securely. They are only used for
-                verification and are never shared with third parties.
-              </p>
-            </div>
-
-            {/* Driver's License Upload */}
-            <div className="mb-4">
-              <p className="text-xs font-bold text-park-teal mb-2 flex items-center gap-1.5">
-                <span className="text-gray-700">Driver&apos;s License</span>
-              </p>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="relative">
+              <User
+                size={17}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-park-teal"
+              />
               <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,application/pdf"
-                onChange={handleFileChange}
-                className="hidden"
+                type="text"
+                placeholder="Full Name"
+                className="h-13 w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-park-teal"
+              />
+            </div>
+
+            <div className="relative">
+              <Phone
+                size={17}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-park-teal"
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                className="h-13 w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-park-teal"
+              />
+            </div>
+
+            <div className="relative">
+              <Mail
+                size={17}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-park-teal"
+              />
+              <input
+                type="email"
+                placeholder="Email Address"
+                className="h-13 w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-park-teal"
+              />
+            </div>
+
+            <div className="relative">
+              <Lock
+                size={17}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-park-teal"
+              />
+              <input
+                type={showPass ? "text" : "password"}
+                placeholder="Password"
+                className="h-13 w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-11 text-sm outline-none focus:border-park-teal"
               />
               <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-park-teal/40 rounded-xl p-6 flex flex-col items-center gap-2 hover:border-park-teal hover:bg-park-teal-light/30 transition-colors"
+                type="button"
+                onClick={() => setShowPass((v) => !v)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
               >
-                {licensePreview ? (
-                  <img
-                    src={licensePreview}
-                    alt="License preview"
-                    className="max-h-28 rounded-lg object-contain"
-                  />
-                ) : (
-                  <Upload size={28} className="text-park-teal" />
-                )}
-                <span className="text-sm font-semibold text-park-navy">
-                  {licenseFile ? licenseFile.name : "Upload your driver's license"}
-                </span>
-                {!licenseFile && (
-                  <span className="text-xs text-gray-400">
-                    Front and back • JPG, PNG, PDF • Max 10 MB
-                  </span>
-                )}
-              </button>
-              {licenseFile && (
-                <p className="text-xs text-park-teal mt-1 flex items-center gap-1">
-                  <Check size={12} /> File selected — will be uploaded when backend is set up
-                </p>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setStep(2)}
-                className="flex items-center gap-1 px-4 py-2.5 rounded-full border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
-              >
-                <ChevronLeft size={14} /> Back
-              </button>
-              <button
-                onClick={() => setStep(4)}
-                className="flex-1 py-2.5 rounded-full bg-park-navy text-white font-semibold text-sm flex items-center justify-center gap-1 hover:bg-park-navy/90 transition-colors"
-              >
-                Continue <ChevronRight size={16} />
+                {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
-          </>
-        )}
 
-        {/* Step 4: Review & Confirm */}
-        {step === 4 && (
-          <>
-            <h2 className="text-base font-bold text-park-navy">Review & Confirm</h2>
-            <p className="text-xs text-gray-400 mb-4">Step 4 of {totalSteps}</p>
-
-            {/* Account Type */}
-            <div className="bg-white rounded-xl p-4 mb-3">
-              <p className="text-xs font-semibold text-park-teal mb-2">Account Type</p>
-              <div className="flex items-center gap-2">
-                {role === "driver" ? <Car size={18} className="text-park-navy" /> : <User size={18} className="text-park-navy" />}
-                <span className="font-bold text-park-navy text-sm">
-                  {role === "driver" ? "Driver Account" : "Host Account"}
-                </span>
-              </div>
-            </div>
-
-            {/* Personal Details */}
-            <div className="bg-white rounded-xl p-4 mb-3">
-              <p className="text-xs font-semibold text-park-teal mb-3">Personal Details</p>
-              <div className="space-y-2">
-                {[
-                  ["Full Name", `${firstName} ${lastName}`.trim() || "—"],
-                  ["Email", email || "—"],
-                  ["Phone", phone || "—"],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex justify-between text-sm">
-                    <span className="text-gray-500">{label}</span>
-                    <span className="text-park-navy font-medium">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Verification Status */}
-            <div className="bg-white rounded-xl p-4 mb-4">
-              <p className="text-xs font-semibold text-park-teal mb-3">Verification Status</p>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">
-                  {role === "driver" ? "Driver's License" : "Identity Document"}
-                </span>
-                <span className="text-park-teal font-semibold">
-                  {licenseFile ? "Uploaded" : "Pending"}
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-400 mb-4 text-center">
-              By creating an account, you agree to ParkShare&apos;s{" "}
-              <span className="font-bold text-park-navy cursor-pointer hover:underline">
-                Terms of Service
-              </span>{" "}
-              and{" "}
-              <span className="font-bold text-park-navy cursor-pointer hover:underline">
-                Privacy Policy
+            <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-park-teal bg-[#eefbfd] px-4 py-3 text-sm font-bold text-park-navy">
+              <Upload size={18} className="text-park-teal" />
+              <span>
+                {role === "driver"
+                  ? "Upload Driver’s License"
+                  : "Upload Valid ID / License"}
               </span>
-              .
-            </p>
+              <input type="file" accept="image/*" className="hidden" />
+            </label>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => setStep(3)}
-                className="flex items-center gap-1 px-4 py-2.5 rounded-full border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
-              >
-                <ChevronLeft size={14} /> Back
-              </button>
-              <button
-                onClick={handleCreate}
-                className="flex-1 py-2.5 rounded-full bg-park-navy text-white font-semibold text-sm flex items-center justify-center gap-1 hover:bg-park-navy/90 transition-colors"
-              >
-                Create Account <Check size={16} />
-              </button>
-            </div>
-          </>
-        )}
+            <button
+              type="submit"
+              className="mt-2 flex h-14 w-full items-center justify-center rounded-full bg-park-navy text-base font-black text-white transition-colors hover:bg-park-navy/90"
+            >
+              Sign Up as {role === "driver" ? "Driver" : "Host"} ›
+            </button>
+          </form>
+
+          <p className="mt-4 text-center text-sm text-gray-400">
+            Already have an account?{" "}
+            <Link
+              href="/auth/login"
+              className="font-black text-park-navy hover:underline"
+            >
+              Sign In
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
