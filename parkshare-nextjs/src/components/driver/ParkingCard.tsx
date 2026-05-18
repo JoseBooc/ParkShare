@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -22,12 +23,15 @@ export default function ParkingCard({ slot, saved = false }: ParkingCardProps) {
   return (
     <Link href={`/driver/listing/${slot.id}`} className="group block">
       <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
-        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-park-teal-light to-park-teal/30">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/80 shadow-sm backdrop-blur-sm">
-              <MapPin size={30} className="text-park-teal" />
-            </div>
-          </div>
+        <div className="relative h-48 overflow-hidden bg-linear-to-br from-park-teal-light to-park-teal/30">
+          <Image
+            src={slot.image}
+            alt={slot.name}
+            width={800}
+            height={480}
+            className="h-48 w-full object-cover"
+            priority={slot.isRecommended}
+          />
 
           {slot.isRecommended && (
             <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-bold text-park-teal shadow-sm">

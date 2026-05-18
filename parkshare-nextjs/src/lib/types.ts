@@ -20,7 +20,7 @@ export interface ParkingSlot {
   reviewCount: number;
   amenities: Amenity[];
   vehicleTypes: VehicleType[];
-  images: string[];
+  image: string;
   availability: DayAvailability[];
   hostId: string;
   hostName: string;

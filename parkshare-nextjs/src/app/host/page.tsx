@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Plus,
   User,
@@ -96,8 +97,14 @@ export default function HostDashboard() {
                   key={slot.id}
                   className="overflow-hidden rounded-3xl bg-[#eefbfd] shadow-sm"
                 >
-                  <div className="flex h-44 items-center justify-center bg-gradient-to-br from-park-teal-light to-park-teal/30">
-                    <ParkingCircle size={48} className="text-park-teal/60" />
+                  <div className="h-40 w-full overflow-hidden rounded-t-xl bg-linear-to-br from-park-teal-light to-park-teal/30">
+                    <Image
+                      src={slot.image}
+                      alt={slot.name}
+                      width={800}
+                      height={400}
+                      className="h-40 w-full object-cover rounded-t-xl"
+                    />
                   </div>
 
                   <div className="p-4">

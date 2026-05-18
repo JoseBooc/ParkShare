@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Plus,
   MapPin,
@@ -115,8 +116,14 @@ export default function MySlotsPage() {
                 key={slot.id}
                 className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="relative flex h-52 items-center justify-center bg-gradient-to-br from-park-teal-light to-park-teal/30">
-                  <ParkingCircle size={54} className="text-park-teal/60" />
+                <div className="relative h-52 overflow-hidden bg-linear-to-br from-park-teal-light to-park-teal/30">
+                  <Image
+                    src={slot.image}
+                    alt={slot.name}
+                    width={900}
+                    height={520}
+                    className="h-52 w-full object-cover rounded-t-xl"
+                  />
 
                   <span className="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-park-navy shadow-sm">
                     Slot {index + 1}
