@@ -28,6 +28,7 @@ export default function ListingPage({ params }: Props) {
   const reviews = REVIEWS.filter((r) => r.slotId === id);
 
   const [duration, setDuration] = useState(3);
+  const [feedback, setFeedback] = useState("");
 
   if (!slot) {
     return (
@@ -52,9 +53,14 @@ export default function ListingPage({ params }: Props) {
     year: "numeric",
   });
 
+  function submitFeedback() {
+    if (!feedback.trim()) return;
+    alert("Feedback submitted successfully!");
+    setFeedback("");
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      {/* Back */}
       <button
         onClick={() => router.back()}
         className="flex items-center gap-1 text-sm text-gray-500 hover:text-park-navy mb-4 transition-colors"
@@ -62,13 +68,11 @@ export default function ListingPage({ params }: Props) {
         <ChevronLeft size={16} /> Back
       </button>
 
-      {/* Photo Gallery */}
       <div className="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden mb-6 h-52">
-        {/* Main photo */}
         <div className="col-span-2 bg-gradient-to-br from-park-teal-light to-park-teal/30 flex items-center justify-center">
           <MapPin size={56} className="text-park-teal/30" />
         </div>
-        {/* Two side photos */}
+
         <div className="flex flex-col gap-2">
           <div className="flex-1 bg-gradient-to-br from-park-teal/20 to-park-navy/10 flex items-center justify-center">
             <MapPin size={28} className="text-park-teal/20" />
@@ -79,25 +83,18 @@ export default function ListingPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Two-column layout */}
       <div className="flex flex-col lg:flex-row gap-6">
-
-        {/* ── Left column: listing info ── */}
         <div className="flex-1 min-w-0">
-
-          {/* Recommended badge */}
           {slot.isRecommended && (
             <span className="inline-block mb-3 px-3 py-1 rounded-full border border-park-teal text-park-teal text-xs font-semibold">
               Recommended
             </span>
           )}
 
-          {/* Title */}
           <h1 className="text-2xl font-extrabold text-park-navy leading-tight">
             {slot.name}
           </h1>
 
-          {/* Address + Rating row */}
           <div className="flex flex-wrap items-center gap-3 mt-2">
             <div className="flex items-center gap-1.5 text-gray-500 text-sm">
               <MapPin size={14} />
@@ -110,7 +107,6 @@ export default function ListingPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Host card */}
           <div className="flex items-center justify-between mt-5 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-park-teal flex items-center justify-center flex-shrink-0">
@@ -123,18 +119,20 @@ export default function ListingPage({ params }: Props) {
                 </p>
               </div>
             </div>
-            <button className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-park-navy text-white text-xs font-semibold hover:bg-park-navy/90 transition-colors">
+
+            <button
+              onClick={() => router.push("/driver/messages")}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-park-navy text-white text-xs font-semibold hover:bg-park-navy/90 transition-colors"
+            >
               <MessageCircle size={13} /> Message Host
             </button>
           </div>
 
-          {/* About */}
           <div className="mt-6">
             <h2 className="font-bold text-park-navy mb-2">About the slot</h2>
             <p className="text-sm text-gray-600 leading-relaxed">{slot.description}</p>
           </div>
 
-          {/* Amenities */}
           <div className="mt-6">
             <h2 className="font-bold text-park-navy mb-3">Amenities</h2>
             <div className="flex flex-wrap gap-2">
@@ -144,7 +142,6 @@ export default function ListingPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Availability */}
           <div className="mt-6">
             <h2 className="font-bold text-park-navy mb-3">Availability</h2>
             <div className="grid grid-cols-7 gap-1 text-center">
@@ -168,8 +165,7 @@ export default function ListingPage({ params }: Props) {
             </p>
           </div>
 
-          {/* Reviews */}
-          <div className="mt-6">
+          <div className="mt-6 mb-10">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="font-bold text-park-navy">
                 Reviews ({slot.reviewCount})
@@ -179,27 +175,51 @@ export default function ListingPage({ params }: Props) {
                 <span className="text-sm font-bold text-gray-700">{slot.rating}</span>
               </div>
             </div>
+
             <div className="space-y-3">
-              {reviews.map((rev) => (
-                <div key={rev.id} className="bg-white rounded-2xl p-4 border border-gray-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-full bg-park-teal-light flex items-center justify-center">
-                        <User size={15} className="text-park-teal" />
+              {reviews.length > 0 ? (
+                reviews.map((rev) => (
+                  <div key={rev.id} className="bg-white rounded-2xl p-4 border border-gray-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-full bg-park-teal-light flex items-center justify-center">
+                          <User size={15} className="text-park-teal" />
+                        </div>
+                        <span className="text-sm font-bold text-park-teal">{rev.userName}</span>
                       </div>
-                      <span className="text-sm font-bold text-park-teal">{rev.userName}</span>
+                      <span className="text-xs text-gray-400">{rev.date}</span>
                     </div>
-                    <span className="text-xs text-gray-400">{rev.date}</span>
+                    <StarRating rating={rev.rating} size={13} />
+                    <p className="text-sm text-gray-600 mt-2 leading-relaxed">{rev.comment}</p>
                   </div>
-                  <StarRating rating={rev.rating} size={13} />
-                  <p className="text-sm text-gray-600 mt-2 leading-relaxed">{rev.comment}</p>
+                ))
+              ) : (
+                <div className="bg-white rounded-2xl p-4 border border-gray-100 text-sm text-gray-400">
+                  No reviews yet for this parking slot.
                 </div>
-              ))}
+              )}
+            </div>
+
+            <div className="mt-5 bg-white rounded-2xl p-4 border border-gray-100">
+              <h3 className="font-bold text-park-navy mb-2">Leave feedback</h3>
+
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Write your feedback here..."
+                className="w-full min-h-24 rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-park-teal"
+              />
+
+              <button
+                onClick={submitFeedback}
+                className="mt-3 px-5 py-2 rounded-full bg-park-teal text-white text-sm font-semibold hover:bg-park-teal-dark transition-colors"
+              >
+                Submit Feedback
+              </button>
             </div>
           </div>
         </div>
 
-        {/* ── Right column: booking card (sticky) ── */}
         <div className="w-full lg:w-72 flex-shrink-0">
           <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm lg:sticky lg:top-24">
             <p className="font-extrabold text-park-navy text-xl mb-4">
@@ -207,19 +227,16 @@ export default function ListingPage({ params }: Props) {
               <span className="text-gray-400 font-normal text-sm">/hr</span>
             </p>
 
-            {/* Date */}
             <div className="border border-gray-200 rounded-xl px-4 py-3 mb-3">
               <p className="text-xs text-gray-400 mb-0.5">Date</p>
               <p className="text-sm font-semibold text-park-navy">{dateLabel}</p>
             </div>
 
-            {/* Time */}
             <div className="border border-gray-200 rounded-xl px-4 py-3 mb-3">
               <p className="text-xs text-gray-400 mb-0.5">Time</p>
               <p className="text-sm font-semibold text-park-navy">6:00 – 9:00 AM</p>
             </div>
 
-            {/* Duration */}
             <div className="border border-gray-200 rounded-xl px-4 py-3 mb-4">
               <p className="text-xs text-gray-400 mb-2">Duration</p>
               <div className="flex items-center justify-between">
@@ -229,7 +246,9 @@ export default function ListingPage({ params }: Props) {
                 >
                   <Minus size={13} />
                 </button>
+
                 <span className="font-bold text-park-navy text-sm">{duration} hours</span>
+
                 <button
                   onClick={() => setDuration((d) => Math.min(12, d + 1))}
                   className="w-7 h-7 rounded-full bg-park-teal text-white flex items-center justify-center hover:bg-park-teal-dark transition-colors"
@@ -239,7 +258,6 @@ export default function ListingPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Price breakdown */}
             <div className="space-y-1.5 border-t border-gray-100 pt-3 mb-4">
               <div className="flex justify-between text-sm text-gray-500">
                 <span>₱{slot.price} × {duration} hours</span>
@@ -255,12 +273,17 @@ export default function ListingPage({ params }: Props) {
               </div>
             </div>
 
-            <button className="w-full py-3 rounded-full bg-park-navy text-white font-bold text-sm hover:bg-park-navy/90 transition-colors">
+            <button
+              onClick={() => {
+                alert(`Booking confirmed for ${slot.name}!\nTotal: ₱${total}`);
+                router.push("/driver/saved");
+              }}
+              className="w-full py-3 rounded-full bg-park-navy text-white font-bold text-sm hover:bg-park-navy/90 transition-colors"
+            >
               Book Now
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );
