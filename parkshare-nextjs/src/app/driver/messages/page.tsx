@@ -11,17 +11,15 @@ export default function DriverMessagesPage() {
     { sender: "driver", text: "Great, I’m interested in booking it." },
   ]);
 
-  function sendMessage() {
-    const cleanMessage = message.trim();
+  function sendMessage(e?: React.FormEvent) {
+    e?.preventDefault();
 
+    const cleanMessage = message.trim();
     if (!cleanMessage) return;
 
     setMessages((currentMessages) => [
       ...currentMessages,
-      {
-        sender: "driver",
-        text: cleanMessage,
-      },
+      { sender: "driver", text: cleanMessage },
     ]);
 
     setMessage("");
@@ -52,27 +50,24 @@ export default function DriverMessagesPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-3 border-t border-gray-100 p-4">
+        <form
+          onSubmit={sendMessage}
+          className="relative z-50 flex items-center gap-3 border-t border-gray-100 bg-white p-4"
+        >
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                sendMessage();
-              }
-            }}
             placeholder="Type your message..."
-            className="flex-1 rounded-full border border-gray-200 px-5 py-3 text-sm outline-none focus:border-park-teal"
+            className="min-w-0 flex-1 rounded-full border border-gray-200 px-5 py-3 text-sm outline-none focus:border-park-teal"
           />
 
           <button
-            type="button"
-            onClick={sendMessage}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-park-teal text-white hover:bg-park-teal-dark"
+            type="submit"
+            className="relative z-50 flex h-14 w-14 shrink-0 touch-manipulation items-center justify-center rounded-full bg-park-teal text-white active:scale-95"
           >
-            <Send size={18} />
+            <Send size={20} />
           </button>
-        </div>
+        </form>
       </div>
     </main>
   );

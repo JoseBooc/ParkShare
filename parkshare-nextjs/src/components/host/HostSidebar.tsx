@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ParkingCircle,
@@ -24,12 +24,11 @@ const NAV_ITEMS = [
 
 export default function HostSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside
-      className={`sticky top-0 h-screen min-h-screen border-r border-park-teal/25 bg-[#eefbfd] transition-all duration-200 ${
+      className={`sticky top-0 z-50 h-screen min-h-screen border-r border-park-teal/25 bg-[#eefbfd] transition-all duration-200 ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
@@ -42,7 +41,7 @@ export default function HostSidebar() {
                 alt="ParkShare"
                 width={46}
                 height={46}
-                className="h-10 w-10 object-contain object-left"
+                className="h-10 w-auto object-contain object-left"
                 priority
               />
             ) : (
@@ -60,20 +59,24 @@ export default function HostSidebar() {
 
         <nav className="flex-1 space-y-2 px-4">
           {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-            const active = pathname === href;
+            const active =
+              pathname === href ||
+              (href !== "/host" && pathname.startsWith(href));
 
             return (
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors ${
+                className={`relative z-50 flex touch-manipulation items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors ${
                   active
-                    ? "bg-park-teal-light text-park-navy font-bold"
+                    ? "bg-park-teal-light font-bold text-park-navy"
                     : "text-park-navy/75 hover:bg-white hover:text-park-navy"
                 } ${collapsed ? "justify-center" : ""}`}
               >
                 <Icon size={18} className="flex-shrink-0" />
-                {!collapsed && <span className="whitespace-nowrap">{label}</span>}
+                {!collapsed && (
+                  <span className="whitespace-nowrap">{label}</span>
+                )}
               </Link>
             );
           })}
@@ -83,26 +86,36 @@ export default function HostSidebar() {
           {!collapsed && (
             <Link
               href="/host/slots/add"
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-park-teal px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark"
+              className="relative z-50 flex w-full touch-manipulation items-center justify-center gap-2 rounded-full bg-park-teal px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark active:scale-95"
             >
               <Plus size={16} />
               Add Space
             </Link>
           )}
 
-          <button
-            onClick={() => router.push("/driver")}
-            className={`flex w-full items-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold text-park-navy/70 transition-colors hover:bg-white hover:text-park-navy ${
+          {collapsed && (
+            <Link
+              href="/host/slots/add"
+              className="relative z-50 flex w-full touch-manipulation items-center justify-center rounded-lg px-3 py-3 text-sm font-semibold text-park-navy/70 transition-colors hover:bg-white hover:text-park-navy active:scale-95"
+            >
+              <Plus size={18} className="flex-shrink-0" />
+            </Link>
+          )}
+
+          <Link
+            href="/driver"
+            className={`relative z-50 flex w-full touch-manipulation items-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold text-park-navy/70 transition-colors hover:bg-white hover:text-park-navy active:scale-95 ${
               collapsed ? "justify-center" : ""
             }`}
           >
             <User size={18} className="flex-shrink-0" />
             {!collapsed && <span>Switch to Driver</span>}
-          </button>
+          </Link>
 
           <button
+            type="button"
             onClick={() => setCollapsed((v) => !v)}
-            className={`flex w-full items-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold text-park-navy/50 transition-colors hover:bg-white ${
+            className={`relative z-50 flex w-full touch-manipulation items-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold text-park-navy/50 transition-colors hover:bg-white active:scale-95 ${
               collapsed ? "justify-center" : ""
             }`}
           >
