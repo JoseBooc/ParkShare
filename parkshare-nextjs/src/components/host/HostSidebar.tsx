@@ -10,7 +10,6 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
-  User,
   Plus,
 } from "lucide-react";
 import { useState } from "react";
@@ -101,16 +100,6 @@ export default function HostSidebar() {
               <Plus size={18} className="flex-shrink-0" />
             </Link>
           )}
-
-          <Link
-            href="/driver"
-            className={`relative z-50 flex w-full touch-manipulation items-center gap-2 rounded-lg px-3 py-3 text-sm font-semibold text-park-navy/70 transition-colors hover:bg-white hover:text-park-navy active:scale-95 ${
-              collapsed ? "justify-center" : ""
-            }`}
-          >
-            <User size={18} className="flex-shrink-0" />
-            {!collapsed && <span>Switch to Driver</span>}
-          </Link>
 
           <button
             type="button"

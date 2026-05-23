@@ -10,6 +10,7 @@ import {
   MapPin,
   Camera,
 } from "lucide-react";
+import { supabase } from "@/utils/supabase/client";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -60,8 +61,10 @@ export default function AddSlotPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -90,12 +93,10 @@ export default function AddSlotPage() {
 
     if (!file) return;
 
+    setImageFile(file);
+
     const reader = new FileReader();
-
-    reader.onload = () => {
-      setPhotoPreview(reader.result as string);
-    };
-
+    reader.onload = () => setPhotoPreview(reader.result as string);
     reader.readAsDataURL(file);
   }
 
@@ -126,6 +127,61 @@ export default function AddSlotPage() {
   function handleAmountChange(value: string) {
     const numbersOnly = value.replace(/\D/g, "");
     setHourlyRate(numbersOnly);
+  }
+
+  async function handlePublish() {
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let uploadedUrl = "";
+
+      if (imageFile && imageFile.name) {
+        try {
+          const fileExt = imageFile.name.split(".").pop();
+          const uniqueId = Math.random().toString(36).substring(2, 11);
+          const fileName = `${Date.now()}-${uniqueId}.${fileExt}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("parking-images")
+            .upload(fileName, imageFile);
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabase.storage
+            .from("parking-images")
+            .getPublicUrl(fileName);
+
+          uploadedUrl = urlData.publicUrl;
+        } catch (storageErr) {
+          console.error("Storage upload failed:", storageErr);
+        }
+      }
+
+      const { error } = await supabase.from("parking_slots").insert([
+        {
+          host_id: user?.id,
+          title: name,
+          address: city ? `${address}, ${city}` : address,
+          price_per_hour: parseFloat(hourlyRate) || 0,
+          description,
+          status: "active",
+          image_url: uploadedUrl || null,
+        },
+      ]);
+
+      if (error) throw error;
+
+      alert("Your parking slot has been published successfully!");
+      router.push("/host/slots");
+    } catch (error: any) {
+      console.error("Full System Error Object:", error);
+      const errorText =
+        error?.message || error?.error_description || JSON.stringify(error);
+      alert(`Failed to publish listing: ${errorText}`);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -488,11 +544,18 @@ export default function AddSlotPage() {
               </div>
 
               <button
-                onClick={() => router.push("/host/slots")}
-                className="mt-8 h-14 w-full rounded-full bg-[#45c4d9] font-bold text-white"
+                onClick={handlePublish}
+                disabled={isLoading}
+                className="mt-8 h-14 w-full rounded-full bg-[#45c4d9] font-bold text-white disabled:opacity-60"
               >
-                <Check size={16} className="mr-2 inline" />
-                Publish Listing
+                {isLoading ? (
+                  "Publishing…"
+                ) : (
+                  <>
+                    <Check size={16} className="mr-2 inline" />
+                    Publish Listing
+                  </>
+                )}
               </button>
             </>
           )}

@@ -1,59 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Plus,
-  User,
   ParkingCircle,
   CalendarCheck,
   Wallet,
   Star,
-  ArrowRight,
   ChevronDown,
   Bell,
 } from "lucide-react";
-import { HOST_SLOTS } from "@/lib/mock-data";
+import { createClient } from "@/utils/supabase/client";
 
 export default function HostDashboard() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [slotCount, setSlotCount] = useState<number>(0);
+  const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
 
-  const totalBookings = HOST_SLOTS.reduce(
-    (s, sl) => s + sl.totalBookings,
-    0
-  );
+  useEffect(() => {
+    async function fetchDashboardData() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const totalEarned = HOST_SLOTS.reduce(
-    (s, sl) => s + sl.totalEarned,
-    0
-  );
+      const [{ count }, { data: profileData }] = await Promise.all([
+        supabase
+          .from("parking_slots")
+          .select("*", { count: "exact", head: true })
+          .eq("host_id", user.id)
+          .eq("status", "active"),
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single(),
+      ]);
 
-  const avgRating =
-    HOST_SLOTS.length > 0
-      ? HOST_SLOTS.reduce((s, sl) => s + sl.rating, 0) /
-        HOST_SLOTS.length
-      : 0;
+      setSlotCount(count ?? 0);
+      setProfile(profileData);
+    }
+    fetchDashboardData();
+  }, []);
 
   const stats = [
     {
       label: "Total Spaces",
-      value: HOST_SLOTS.length.toString(),
+      value: slotCount.toString(),
       icon: ParkingCircle,
     },
     {
       label: "Total Bookings",
-      value: totalBookings.toString(),
+      value: "—",
       icon: CalendarCheck,
     },
     {
       label: "Total Earned",
-      value: `₱${(totalEarned / 1000).toFixed(1)}k`,
+      value: "—",
       icon: Wallet,
     },
     {
       label: "Average Rating",
-      value: avgRating.toFixed(1),
+      value: "—",
       icon: Star,
     },
   ];
@@ -68,25 +76,84 @@ export default function HostDashboard() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-500">
-            Welcome back, Andrew
+            Welcome back, {profile?.full_name || "Host"}
           </p>
         </div>
 
         <div className="flex items-center gap-4">
-          {/* ADD SLOT */}
-          <button className="flex items-center gap-2 rounded-full bg-cyan-400 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-cyan-500">
-            <Plus size={18} />
-            Add Slot
-          </button>
-
           {/* NOTIFICATION */}
-          <button className="relative">
-            <Bell className="text-[#1E2A78]" size={24} />
+          <div className="relative">
+            <button
+              onClick={() => {
+                setIsNotifOpen(!isNotifOpen);
+                setShowProfileMenu(false);
+              }}
+              className="relative"
+            >
+              <Bell className="text-[#1E2A78]" size={24} />
+              <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                2
+              </span>
+            </button>
 
-            <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-              2
-            </span>
-          </button>
+            {isNotifOpen && (
+              <div className="absolute right-0 z-50 mt-4 w-80 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                  <h3 className="text-base font-extrabold text-[#1E2A78]">
+                    Notifications
+                  </h3>
+
+                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-500">
+                    2 new
+                  </span>
+                </div>
+
+                <ul className="divide-y divide-slate-50">
+                  <li className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-slate-50">
+                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-50">
+                      <CalendarCheck size={16} className="text-cyan-500" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-[#1E2A78]">
+                        New Booking Request
+                      </p>
+
+                      <p className="mt-0.5 text-xs leading-relaxed text-gray-500">
+                        A driver requested to book Avida Towers Slot 1.
+                      </p>
+                    </div>
+                  </li>
+
+                  <li className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-slate-50">
+                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-50">
+                      <Bell size={16} className="text-cyan-500" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-bold text-[#1E2A78]">
+                        Message from Driver
+                      </p>
+
+                      <p className="mt-0.5 text-xs leading-relaxed text-gray-500">
+                        Inquiry received: &ldquo;Is your Gaisano Mall space open tonight?&rdquo;
+                      </p>
+                    </div>
+                  </li>
+                </ul>
+
+                <div className="border-t border-slate-100 px-5 py-3">
+                  <Link
+                    href="/host/messages"
+                    onClick={() => setIsNotifOpen(false)}
+                    className="block text-center text-xs font-bold text-cyan-500 hover:text-cyan-600"
+                  >
+                    View all messages →
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* PROFILE */}
           <div className="relative">
@@ -97,7 +164,7 @@ export default function HostDashboard() {
               className="flex items-center gap-3 rounded-full bg-white px-3 py-2 shadow-md"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-cyan-400 font-bold text-white">
-                A
+                {(profile?.full_name?.[0] ?? "H").toUpperCase()}
               </div>
 
               <ChevronDown
@@ -110,18 +177,20 @@ export default function HostDashboard() {
               <div className="absolute right-0 top-14 z-50 w-56 overflow-hidden rounded-3xl bg-white shadow-2xl">
                 <div className="border-b border-slate-100 px-6 py-5">
                   <h3 className="text-lg font-bold text-[#1E2A78]">
-                    Admin Account
+                    {profile?.full_name || "Host"}
                   </h3>
 
-                  <p className="text-sm text-slate-500">
-                    ParkShare Management
-                  </p>
+                  <span className="mt-2 inline-block rounded-full bg-cyan-50 px-3 py-0.5 text-xs font-bold text-cyan-600">
+                    Host Account
+                  </span>
                 </div>
 
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowProfileMenu(false);
-                    window.location.href = "/admin/login";
+                    const supabase = createClient();
+                    await supabase.auth.signOut();
+                    window.location.href = "/";
                   }}
                   className="w-full px-6 py-5 text-left font-semibold text-red-500 hover:bg-red-50"
                 >
@@ -157,114 +226,44 @@ export default function HostDashboard() {
           ))}
         </div>
 
-        {/* MAIN GRID */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-          {/* PARKING SPACES */}
-          <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-extrabold text-[#1E2A78]">
-                  My Parking Spaces
-                </h2>
+        {/* OVERVIEW */}
+        <aside className="mt-8 w-full max-w-sm rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-2xl font-extrabold text-[#1E2A78]">
+            Today’s Overview
+          </h2>
 
-                <p className="text-sm text-gray-400">
-                  {HOST_SLOTS.length} spaces listed
-                </p>
-              </div>
+          <div className="mt-5 space-y-4">
+            <div className="rounded-2xl bg-cyan-50 p-5">
+              <h3 className="font-bold text-[#1E2A78]">
+                Next Reservation
+              </h3>
 
-              <Link
-                href="/host/slots"
-                className="flex items-center gap-1 text-sm font-bold text-cyan-500 hover:underline"
-              >
-                View all
-                <ArrowRight size={15} />
-              </Link>
+              <p className="mt-2 text-sm text-gray-500">
+                Avida Towers Davao • 6:00 - 9:00 AM
+              </p>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              {HOST_SLOTS.map((slot, index) => (
-                <div
-                  key={slot.id}
-                  className="overflow-hidden rounded-3xl bg-[#eefbfd] shadow-sm"
-                >
-                  <Image
-                    src={slot.image}
-                    alt={slot.name}
-                    width={800}
-                    height={400}
-                    priority={index === 0}
-                    className="h-52 w-full object-cover"
-                  />
+            <div className="rounded-2xl bg-cyan-50 p-5">
+              <h3 className="font-bold text-[#1E2A78]">
+                Pending Messages
+              </h3>
 
-                  <div className="p-5">
-                    <h3 className="text-xl font-bold text-[#1E2A78]">
-                      {slot.name}
-                    </h3>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                      {slot.address}
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#1E2A78]">
-                        ₱{slot.price}/hr
-                      </span>
-
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#1E2A78]">
-                        {slot.totalBookings} bookings
-                      </span>
-
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#1E2A78]">
-                        ₱
-                        {(slot.totalEarned / 1000).toFixed(1)}
-                        k earned
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <p className="mt-2 text-sm text-gray-500">
+                2 new client inquiries
+              </p>
             </div>
-          </section>
 
-          {/* OVERVIEW */}
-          <aside className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-extrabold text-[#1E2A78]">
-              Today’s Overview
-            </h2>
+            <div className="rounded-2xl bg-cyan-50 p-5">
+              <h3 className="font-bold text-[#1E2A78]">
+                Verification Status
+              </h3>
 
-            <div className="mt-5 space-y-4">
-              <div className="rounded-2xl bg-cyan-50 p-5">
-                <h3 className="font-bold text-[#1E2A78]">
-                  Next Reservation
-                </h3>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  Avida Towers Davao • 6:00 - 9:00 AM
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-cyan-50 p-5">
-                <h3 className="font-bold text-[#1E2A78]">
-                  Pending Messages
-                </h3>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  2 new client inquiries
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-cyan-50 p-5">
-                <h3 className="font-bold text-[#1E2A78]">
-                  Verification Status
-                </h3>
-
-                <p className="mt-2 font-semibold text-cyan-500">
-                  Active Host Account
-                </p>
-              </div>
+              <p className="mt-2 font-semibold text-cyan-500">
+                Active Host Account
+              </p>
             </div>
-          </aside>
-        </div>
+          </div>
+        </aside>
       </section>
     </main>
   );

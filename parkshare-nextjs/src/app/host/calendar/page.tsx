@@ -4,12 +4,9 @@ import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Plus,
-  User,
   CalendarCheck,
   Clock3,
 } from "lucide-react";
-import Link from "next/link";
 import { CALENDAR_EVENTS } from "@/lib/mock-data";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -106,19 +103,6 @@ export default function CalendarPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/host/slots/add"
-            className="flex items-center gap-2 rounded-full bg-park-teal px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark"
-          >
-            <Plus size={16} />
-            Add Slot
-          </Link>
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-park-navy bg-white">
-            <User size={17} className="text-park-navy" />
-          </div>
-        </div>
       </header>
 
       <section className="grid gap-6 px-8 py-8 lg:grid-cols-[1.2fr_0.8fr]">

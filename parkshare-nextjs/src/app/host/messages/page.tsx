@@ -2,14 +2,11 @@
 
 import { useState } from "react";
 import {
-  Plus,
   User,
   Send,
   MessageCircle,
   Search,
 } from "lucide-react";
-
-import Link from "next/link";
 
 import { MESSAGES } from "@/lib/mock-data";
 
@@ -132,19 +129,6 @@ export default function MessagesPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/host/slots/add"
-            className="flex items-center gap-2 rounded-full bg-park-teal px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark"
-          >
-            <Plus size={16} />
-            Add Slot
-          </Link>
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-park-navy bg-white">
-            <User size={17} className="text-park-navy" />
-          </div>
-        </div>
       </header>
 
       <section className="px-8 py-8">
