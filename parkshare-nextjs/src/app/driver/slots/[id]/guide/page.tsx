@@ -44,69 +44,97 @@ function DavaoMap() {
       preserveAspectRatio="xMidYMid slice"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect width="800" height="520" fill="#F2ECD8" />
-      <path d="M610 0 L800 0 L800 520 L490 520 L460 490 L470 430 L490 360 L510 270 L540 180 L570 100 Z" fill="#C5DCE8" />
-      <ellipse cx="75" cy="200" rx="85" ry="95" fill="#CDDEB8" opacity="0.75" />
-      <ellipse cx="90" cy="350" rx="100" ry="75" fill="#CDDEB8" opacity="0.70" />
-      <ellipse cx="140" cy="460" rx="130" ry="60" fill="#CDDEB8" opacity="0.65" />
-      <ellipse cx="680" cy="170" rx="80" ry="90" fill="#CDDEB8" opacity="0.55" />
-      <ellipse cx="720" cy="462" rx="78" ry="44" fill="#D8EBC0" />
-      <circle cx="398" cy="242" r="22" fill="#B8DAA0" />
-      <circle cx="398" cy="242" r="14" fill="#A8CC90" />
-      <path d="M430 50 Q448 90 455 140 Q462 190 468 240 Q474 290 480 340" stroke="#C5DCE8" strokeWidth="10" fill="none" opacity="0.9" />
-      <path d="M370 180 Q390 200 408 230 Q420 255 430 285" stroke="#C5DCE8" strokeWidth="6" fill="none" opacity="0.8" />
-      <path d="M0 85 Q80 80 160 88 Q260 95 340 76 Q400 62 480 52 Q570 42 660 50 L800 56" stroke="#D4AA5A" strokeWidth="7" fill="none" strokeLinecap="round" />
-      <path d="M160 88 Q168 160 172 240 Q176 320 182 400 Q186 450 192 520" stroke="#D4AA5A" strokeWidth="7" fill="none" strokeLinecap="round" />
-      <path d="M0 490 Q80 474 180 466 Q300 456 400 468 Q465 476 520 484 L590 492" stroke="#D4AA5A" strokeWidth="6" fill="none" strokeLinecap="round" />
-      <path d="M362 52 Q358 110 362 165 Q366 220 370 275 Q374 330 378 385 Q382 430 386 480" stroke="#D4AA5A" strokeWidth="5" fill="none" strokeLinecap="round" />
-      <path d="M522 0 Q520 80 518 160 Q516 245 514 325 Q512 400 510 480 L508 520" stroke="#D4AA5A" strokeWidth="5" fill="none" strokeLinecap="round" />
-      <path d="M570 100 Q565 185 558 265 Q551 345 544 425 L536 510" stroke="#D4AA5A" strokeWidth="4" fill="none" strokeLinecap="round" />
-      <path d="M172 282 Q250 278 330 281 Q358 282 378 282" stroke="#D4AA5A" strokeWidth="4" fill="none" strokeLinecap="round" />
-      <path d="M182 344 Q270 340 358 342 Q430 346 510 350" stroke="#D4AA5A" strokeWidth="4" fill="none" strokeLinecap="round" />
-      <path d="M210 425 Q295 420 370 422 Q418 424 460 430" stroke="#D4AA5A" strokeWidth="4" fill="none" strokeLinecap="round" />
-      <path d="M362 165 Q420 162 518 172" stroke="#D8B86A" strokeWidth="3" fill="none" />
-      <path d="M366 225 Q420 222 516 230" stroke="#D8B86A" strokeWidth="3" fill="none" />
-      <path d="M370 282 Q420 280 514 284" stroke="#D8B86A" strokeWidth="3" fill="none" />
-      <path d="M374 344 Q420 342 510 346" stroke="#D8B86A" strokeWidth="3" fill="none" />
-      <path d="M378 400 Q420 398 510 402" stroke="#D8B86A" strokeWidth="3" fill="none" />
-      <path d="M430 88 Q432 135 436 180 Q440 225 444 272 Q448 320 453 368 Q457 408 462 452" stroke="#52C878" strokeWidth="13" fill="none" strokeLinecap="round" opacity="0.3" />
-      <path d="M430 88 Q432 135 436 180 Q440 225 444 272 Q448 320 453 368 Q457 408 462 452" stroke="#27AE60" strokeWidth="7" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M430 88 Q432 135 436 180 Q440 225 444 272 Q448 320 453 368 Q457 408 462 452" stroke="#5EE887" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.65" />
-      <text x="490" y="32" textAnchor="middle" fill="#444" fontSize="13" fontWeight="800" fontFamily="Arial" letterSpacing="1.5">BUHANGIN</text>
-      <text x="715" y="32" textAnchor="middle" fill="#555" fontSize="11" fontWeight="700" fontFamily="Arial">PANACAN</text>
-      <text x="68" y="192" textAnchor="middle" fill="#666" fontSize="11" fontWeight="700" fontFamily="Arial">MA-A</text>
-      <text x="490" y="152" textAnchor="middle" fill="#555" fontSize="11" fontWeight="700" fontFamily="Arial">BAJADA</text>
-      <text x="660" y="155" textAnchor="middle" fill="#666" fontSize="11" fontWeight="700" fontFamily="Arial">CALINAN</text>
-      <text x="340" y="228" textAnchor="middle" fill="#666" fontSize="11" fontWeight="700" fontFamily="Arial">POB.</text>
-      <text x="580" y="232" textAnchor="middle" fill="#666" fontSize="11" fontWeight="700" fontFamily="Arial">AGDAO</text>
-      <text x="100" y="318" textAnchor="middle" fill="#666" fontSize="9" fontWeight="700" fontFamily="Arial">CATALUNAN</text>
-      <text x="100" y="330" textAnchor="middle" fill="#666" fontSize="9" fontWeight="700" fontFamily="Arial">GRANDE</text>
-      <text x="285" y="312" textAnchor="middle" fill="#444" fontSize="13" fontWeight="800" fontFamily="Arial">DAVAO CITY</text>
-      <text x="285" y="328" textAnchor="middle" fill="#444" fontSize="13" fontWeight="800" fontFamily="Arial">PROPER</text>
-      <text x="490" y="398" textAnchor="middle" fill="#555" fontSize="11" fontWeight="700" fontFamily="Arial">MATINA</text>
-      <text x="65" y="385" textAnchor="middle" fill="#666" fontSize="11" fontWeight="700" fontFamily="Arial">TORIL</text>
-      <text x="78" y="482" textAnchor="middle" fill="#666" fontSize="11" fontWeight="700" fontFamily="Arial">TALOMO</text>
+      {/* Background */}
+      <rect width="800" height="520" fill="#EAEDF4" />
+
+      {/* Sea / Gulf */}
+      <path d="M610 0 L800 0 L800 520 L490 520 L460 490 L470 430 L490 360 L510 270 L540 180 L570 100 Z" fill="#C0D8E8" />
+
+      {/* Green areas */}
+      <ellipse cx="75" cy="200" rx="85" ry="95" fill="#CCE4C5" opacity="0.80" />
+      <ellipse cx="90" cy="350" rx="100" ry="75" fill="#CCE4C5" opacity="0.75" />
+      <ellipse cx="140" cy="460" rx="130" ry="60" fill="#CCE4C5" opacity="0.70" />
+      <ellipse cx="680" cy="170" rx="80" ry="90" fill="#CCE4C5" opacity="0.60" />
+
+      {/* Samal Island */}
+      <ellipse cx="720" cy="462" rx="78" ry="44" fill="#D5EAC5" />
+
+      {/* Park/roundabout */}
+      <circle cx="398" cy="242" r="22" fill="#C4DEB8" />
+      <circle cx="398" cy="242" r="14" fill="#B4CE9A" />
+
+      {/* Rivers */}
+      <path d="M430 50 Q448 90 455 140 Q462 190 468 240 Q474 290 480 340" stroke="#B4CCE0" strokeWidth="10" fill="none" opacity="0.9" />
+      <path d="M370 180 Q390 200 408 230 Q420 255 430 285" stroke="#B4CCE0" strokeWidth="6" fill="none" opacity="0.8" />
+
+      {/* Major roads — blue-gray periwinkle */}
+      <path d="M0 85 Q80 80 160 88 Q260 95 340 76 Q400 62 480 52 Q570 42 660 50 L800 56" stroke="#BACDE0" strokeWidth="8" fill="none" strokeLinecap="round" />
+      <path d="M160 88 Q168 160 172 240 Q176 320 182 400 Q186 450 192 520" stroke="#BACDE0" strokeWidth="8" fill="none" strokeLinecap="round" />
+      <path d="M0 490 Q80 474 180 466 Q300 456 400 468 Q465 476 520 484 L590 492" stroke="#BACDE0" strokeWidth="7" fill="none" strokeLinecap="round" />
+      <path d="M362 52 Q358 110 362 165 Q366 220 370 275 Q374 330 378 385 Q382 430 386 480" stroke="#BACDE0" strokeWidth="6" fill="none" strokeLinecap="round" />
+      <path d="M522 0 Q520 80 518 160 Q516 245 514 325 Q512 400 510 480 L508 520" stroke="#BACDE0" strokeWidth="6" fill="none" strokeLinecap="round" />
+      <path d="M570 100 Q565 185 558 265 Q551 345 544 425 L536 510" stroke="#BACDE0" strokeWidth="5" fill="none" strokeLinecap="round" />
+
+      {/* Secondary roads */}
+      <path d="M172 282 Q250 278 330 281 Q358 282 378 282" stroke="#BACDE0" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+      <path d="M182 344 Q270 340 358 342 Q430 346 510 350" stroke="#BACDE0" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+      <path d="M210 425 Q295 420 370 422 Q418 424 460 430" stroke="#BACDE0" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+      <path d="M362 165 Q420 162 518 172" stroke="#BACDE0" strokeWidth="3.5" fill="none" />
+      <path d="M366 225 Q420 222 516 230" stroke="#BACDE0" strokeWidth="3.5" fill="none" />
+      <path d="M370 282 Q420 280 514 284" stroke="#BACDE0" strokeWidth="3.5" fill="none" />
+      <path d="M374 344 Q420 342 510 346" stroke="#BACDE0" strokeWidth="3.5" fill="none" />
+      <path d="M378 400 Q420 398 510 402" stroke="#BACDE0" strokeWidth="3.5" fill="none" />
+
+      {/* Route — cyan/teal with glow */}
+      <path d="M430 88 Q432 135 436 180 Q440 225 444 272 Q448 320 453 368 Q457 408 462 452" stroke="#7ED8E8" strokeWidth="14" fill="none" strokeLinecap="round" opacity="0.35" />
+      <path d="M430 88 Q432 135 436 180 Q440 225 444 272 Q448 320 453 368 Q457 408 462 452" stroke="#00B5C8" strokeWidth="7" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M430 88 Q432 135 436 180 Q440 225 444 272 Q448 320 453 368 Q457 408 462 452" stroke="#AAEDF5" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.70" />
+
+      {/* District labels — dark navy */}
+      <text x="490" y="32" textAnchor="middle" fill="#1C2B6E" fontSize="13" fontWeight="800" fontFamily="Arial" letterSpacing="1.5">BUHANGIN</text>
+      <text x="715" y="32" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">PANACAN</text>
+      <text x="68" y="192" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">MA-A</text>
+      <text x="490" y="152" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">BAJADA</text>
+      <text x="660" y="155" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">CALINAN</text>
+      <text x="340" y="228" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">POB.</text>
+      <text x="580" y="232" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">AGDAO</text>
+      <text x="100" y="318" textAnchor="middle" fill="#1C2B6E" fontSize="9" fontWeight="700" fontFamily="Arial">CATALUNAN</text>
+      <text x="100" y="330" textAnchor="middle" fill="#1C2B6E" fontSize="9" fontWeight="700" fontFamily="Arial">GRANDE</text>
+      <text x="285" y="312" textAnchor="middle" fill="#1C2B6E" fontSize="13" fontWeight="800" fontFamily="Arial">DAVAO CITY</text>
+      <text x="285" y="328" textAnchor="middle" fill="#1C2B6E" fontSize="13" fontWeight="800" fontFamily="Arial">PROPER</text>
+      <text x="490" y="398" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">MATINA</text>
+      <text x="65" y="385" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">TORIL</text>
+      <text x="78" y="482" textAnchor="middle" fill="#1C2B6E" fontSize="11" fontWeight="700" fontFamily="Arial">TALOMO</text>
       <text x="660" y="350" textAnchor="middle" fill="#7AA8C2" fontSize="12" fontStyle="italic" fontFamily="Arial">DAVAO GULF</text>
-      <text x="718" y="460" textAnchor="middle" fill="#888" fontSize="10" fontFamily="Arial">SAMAL ISLAND</text>
-      <rect x="192" y="60" width="40" height="18" rx="3" fill="white" stroke="#AAA" strokeWidth="1" />
-      <text x="212" y="73" textAnchor="middle" fill="#333" fontSize="9" fontWeight="800" fontFamily="Arial">AH26</text>
-      <rect x="742" y="46" width="40" height="18" rx="3" fill="white" stroke="#AAA" strokeWidth="1" />
-      <text x="762" y="59" textAnchor="middle" fill="#333" fontSize="9" fontWeight="800" fontFamily="Arial">AH26</text>
-      <rect x="267" y="382" width="40" height="18" rx="3" fill="white" stroke="#AAA" strokeWidth="1" />
-      <text x="287" y="395" textAnchor="middle" fill="#333" fontSize="9" fontWeight="800" fontFamily="Arial">AH26</text>
-      <rect x="204" y="274" width="96" height="15" rx="3" fill="white" stroke="#CCC" strokeWidth="0.8" />
-      <text x="252" y="285" textAnchor="middle" fill="#444" fontSize="7.5" fontWeight="700" fontFamily="Arial">R. CASTILLO ST.</text>
-      <rect x="120" y="460" width="104" height="15" rx="3" fill="white" stroke="#CCC" strokeWidth="0.8" />
-      <text x="172" y="471" textAnchor="middle" fill="#444" fontSize="7.5" fontWeight="700" fontFamily="Arial">JP LAUREL AVE.</text>
-      <rect x="572" y="398" width="132" height="15" rx="3" fill="white" stroke="#CCC" strokeWidth="0.8" />
-      <text x="638" y="409" textAnchor="middle" fill="#444" fontSize="7.5" fontWeight="700" fontFamily="Arial">DAVAO COASTAL ROAD</text>
-      <text x="452" y="102" fill="#333" fontSize="9" fontWeight="800" fontStyle="italic" fontFamily="Arial">SM LANANG</text>
-      <text x="452" y="113" fill="#333" fontSize="9" fontWeight="800" fontStyle="italic" fontFamily="Arial">PREMIER</text>
-      <circle cx="430" cy="88" r="17" fill="#3B8DE0" stroke="white" strokeWidth="3.5" />
-      <circle cx="430" cy="88" r="7" fill="white" />
-      <ellipse cx="462" cy="458" rx="11" ry="4" fill="#00000018" />
-      <path d="M462 456 C456 445, 447 434, 447 421 A15 15 0 0 1 477 421 C477 434, 468 445, 462 456 Z" fill="#E53935" stroke="white" strokeWidth="2.5" />
-      <circle cx="462" cy="421" r="6" fill="white" opacity="0.92" />
+      <text x="718" y="460" textAnchor="middle" fill="#1C2B6E" fontSize="10" fontWeight="600" fontFamily="Arial">SAMAL ISLAND</text>
+
+      {/* Road sign boxes — white rounded rect + navy text */}
+      <rect x="192" y="60" width="40" height="18" rx="3" fill="white" stroke="#BACDE0" strokeWidth="1" />
+      <text x="212" y="73" textAnchor="middle" fill="#1C2B6E" fontSize="9" fontWeight="800" fontFamily="Arial">AH26</text>
+      <rect x="742" y="46" width="40" height="18" rx="3" fill="white" stroke="#BACDE0" strokeWidth="1" />
+      <text x="762" y="59" textAnchor="middle" fill="#1C2B6E" fontSize="9" fontWeight="800" fontFamily="Arial">AH26</text>
+      <rect x="267" y="382" width="40" height="18" rx="3" fill="white" stroke="#BACDE0" strokeWidth="1" />
+      <text x="287" y="395" textAnchor="middle" fill="#1C2B6E" fontSize="9" fontWeight="800" fontFamily="Arial">AH26</text>
+      <rect x="204" y="274" width="96" height="15" rx="3" fill="white" stroke="#BACDE0" strokeWidth="0.8" />
+      <text x="252" y="285" textAnchor="middle" fill="#1C2B6E" fontSize="7.5" fontWeight="700" fontFamily="Arial">R. CASTILLO ST.</text>
+      <rect x="120" y="460" width="104" height="15" rx="3" fill="white" stroke="#BACDE0" strokeWidth="0.8" />
+      <text x="172" y="471" textAnchor="middle" fill="#1C2B6E" fontSize="7.5" fontWeight="700" fontFamily="Arial">JP LAUREL AVE.</text>
+      <rect x="572" y="398" width="132" height="15" rx="3" fill="white" stroke="#BACDE0" strokeWidth="0.8" />
+      <text x="638" y="409" textAnchor="middle" fill="#1C2B6E" fontSize="7.5" fontWeight="700" fontFamily="Arial">DAVAO COASTAL ROAD</text>
+
+      {/* Origin label */}
+      <text x="452" y="102" fill="#1C2B6E" fontSize="9" fontWeight="800" fontStyle="italic" fontFamily="Arial">SM LANANG</text>
+      <text x="452" y="113" fill="#1C2B6E" fontSize="9" fontWeight="800" fontStyle="italic" fontFamily="Arial">PREMIER</text>
+
+      {/* Origin pin — dark navy teardrop with white center */}
+      <ellipse cx="430" cy="96" rx="11" ry="4" fill="#00000014" />
+      <path d="M430 86 C424 75, 415 64, 415 54 A15 15 0 0 1 445 54 C445 64, 436 75, 430 86 Z" fill="#1C2B6E" stroke="white" strokeWidth="2.5" />
+      <circle cx="430" cy="54" r="6" fill="white" opacity="0.92" />
+
+      {/* Destination pin — dark navy teardrop with white center */}
+      <ellipse cx="462" cy="462" rx="11" ry="4" fill="#00000014" />
+      <path d="M462 458 C456 447, 447 436, 447 423 A15 15 0 0 1 477 423 C477 436, 468 447, 462 458 Z" fill="#1C2B6E" stroke="white" strokeWidth="2.5" />
+      <circle cx="462" cy="423" r="6" fill="white" opacity="0.92" />
     </svg>
   );
 }
