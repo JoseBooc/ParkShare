@@ -22,6 +22,7 @@ type ParkingSlot = {
   price_per_hour: number;
   description: string;
   status: string;
+  image_url: string | null;
 };
 
 export default function MySlotsPage() {
