@@ -14,7 +14,11 @@ export async function GET(request: Request) {
 
   const cookieStore = await cookies();
 
-  const response = NextResponse.redirect(`${origin}${next}`);
+  const cookiesToSet: {
+    name: string;
+    value: string;
+    options: any;
+  }[] = [];
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,9 +28,9 @@ export async function GET(request: Request) {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
+        setAll(items) {
+          items.forEach(({ name, value, options }) => {
+            cookiesToSet.push({ name, value, options });
           });
         },
       },
@@ -39,6 +43,12 @@ export async function GET(request: Request) {
     console.error("Auth callback error:", error.message);
     return NextResponse.redirect(`${origin}/auth/login`);
   }
+
+  const response = NextResponse.redirect(`${origin}${next}`);
+
+  cookiesToSet.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options);
+  });
 
   return response;
 }
