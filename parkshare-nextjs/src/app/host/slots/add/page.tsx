@@ -71,16 +71,17 @@ export default function AddSlotPage() {
   const [description, setDescription] = useState("");
   const [city, setCity] = useState("");
 
-  const [hourlyRate, setHourlyRate] = useState("");
+  const [firstHourRate, setFirstHourRate] = useState("");
+  const [succeedingRate, setSucceedingRate] = useState("");
 
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
-  const [open247, setOpen247] = useState(false);
-
   const [timeSettings, setTimeSettings] = useState(
-    DAYS.map((day) => ({
+    DAYS.map((day, i) => ({
       day,
+      isOpen: i < 6, // Mon–Sat open by default, Sunday closed
+      is247: false,
       from: "8:00",
       fromPeriod: "AM",
       to: "11:00",
@@ -116,6 +117,22 @@ export default function AddSlotPage() {
     );
   }
 
+  function toggleDayOpen(index: number) {
+    setTimeSettings((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, isOpen: !item.isOpen, is247: false } : item
+      )
+    );
+  }
+
+  function toggleDay247(index: number) {
+    setTimeSettings((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, is247: !item.is247 } : item
+      )
+    );
+  }
+
   function updateTime(index: number, field: string, value: string) {
     setTimeSettings((prev) =>
       prev.map((item, i) =>
@@ -124,15 +141,11 @@ export default function AddSlotPage() {
     );
   }
 
-  function handleAmountChange(value: string) {
-    const numbersOnly = value.replace(/\D/g, "");
-    setHourlyRate(numbersOnly);
-  }
-
   async function handlePublish() {
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Authentication session not found. Please log in again.");
 
       let uploadedUrl = "";
 
@@ -158,26 +171,36 @@ export default function AddSlotPage() {
         }
       }
 
-      const { error } = await supabase.from("parking_slots").insert([
-        {
-          host_id: user?.id,
-          title: name,
-          address: city ? `${address}, ${city}` : address,
-          price_per_hour: parseFloat(hourlyRate) || 0,
-          description,
-          status: "active",
-          image_url: uploadedUrl || null,
-        },
-      ]);
+      const insertPayload = {
+        host_id: user.id,
+        title: name,
+        address: city ? `${address}, ${city}` : address,
+        description,
+        price_per_hour: parseFloat(firstHourRate) || 0,
+        succeeding_rate: parseFloat(succeedingRate) || 0,
+        status: "active",
+        image_url: uploadedUrl || null,
+        vehicle_types: Array.isArray(selectedVehicles) ? selectedVehicles : [],
+        amenities: Array.isArray(selectedAmenities) ? selectedAmenities : [],
+        availability: timeSettings,
+        open_247: timeSettings.every((d) => !d.isOpen || d.is247),
+      };
 
-      if (error) throw error;
+      const { error: insertError } = await supabase
+        .from("parking_slots")
+        .insert([insertPayload]);
+
+      if (insertError) throw insertError;
 
       alert("Your parking slot has been published successfully!");
       router.push("/host/slots");
     } catch (error: any) {
       console.error("Full System Error Object:", error);
       const errorText =
-        error?.message || error?.error_description || JSON.stringify(error);
+        error?.message ||
+        error?.details ||
+        error?.error_description ||
+        (typeof error === "object" ? JSON.stringify(error) : String(error));
       alert(`Failed to publish listing: ${errorText}`);
     } finally {
       setIsLoading(false);
@@ -211,7 +234,7 @@ export default function AddSlotPage() {
         </div>
 
         {/* CARD */}
-        <div className="rounded-[32px] border border-gray-100 bg-white p-8 shadow-sm">
+        <div className="rounded-4xl border border-gray-100 bg-white p-8 shadow-sm">
           {/* STEP 1 */}
           {step === 1 && (
             <>
@@ -233,7 +256,7 @@ export default function AddSlotPage() {
 
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex h-[320px] w-full items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-[#45c4d9] hover:bg-cyan-50"
+                className="flex h-80 w-full items-center justify-center overflow-hidden rounded-3xl border-2 border-dashed border-[#45c4d9] hover:bg-cyan-50"
               >
                 {photoPreview ? (
                   <img
@@ -349,15 +372,85 @@ export default function AddSlotPage() {
                 Set your hourly rate and amenities.
               </p>
 
-              <input
-                inputMode="numeric"
-                value={hourlyRate}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                placeholder="35"
-                className="h-14 w-full rounded-2xl border border-gray-200 px-5 text-lg outline-none focus:border-cyan-400"
-              />
+              {/* First hour rate */}
+              <label className="mb-1.5 block text-sm font-bold text-[#202b7b]">
+                First Hour Rate
+              </label>
+              <div className="relative mb-4">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-400">₱</span>
+                <input
+                  inputMode="numeric"
+                  value={firstHourRate}
+                  onChange={(e) => setFirstHourRate(e.target.value.replace(/\D/g, ""))}
+                  placeholder="35"
+                  className="h-14 w-full rounded-2xl border border-gray-200 pl-10 pr-5 text-lg outline-none focus:border-cyan-400"
+                />
+              </div>
 
-              <p className="mb-4 mt-8 font-bold text-[#202b7b]">
+              {/* Succeeding hour rate */}
+              <label className="mb-1.5 block text-sm font-bold text-[#202b7b]">
+                Succeeding Hour Rate
+              </label>
+              <div className="relative mb-5">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-400">₱</span>
+                <input
+                  inputMode="numeric"
+                  value={succeedingRate}
+                  onChange={(e) => setSucceedingRate(e.target.value.replace(/\D/g, ""))}
+                  placeholder="25"
+                  className="h-14 w-full rounded-2xl border border-gray-200 pl-10 pr-5 text-lg outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              {/* Live pricing preview */}
+              {(firstHourRate || succeedingRate) && (
+                <div className="mb-6 rounded-2xl border border-[#45c4d9]/30 bg-[#eefbfd] p-5">
+                  <p className="mb-3 text-base font-black text-[#202b7b]">
+                    ₱{firstHourRate || 0}{" "}
+                    <span className="font-semibold text-gray-500">First hour</span>
+                    {succeedingRate && (
+                      <>
+                        {" "}+{" "}₱{succeedingRate}
+                        <span className="font-semibold text-gray-500">/Succeeding hour</span>
+                      </>
+                    )}
+                  </p>
+
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                    Example: 3 hr visit
+                  </p>
+
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <div className="flex justify-between">
+                      <span>1st hour (base rate)</span>
+                      <span>₱{firstHourRate || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>2 succeeding hours × ₱{succeedingRate || 0}</span>
+                      <span>₱{(parseInt(succeedingRate || "0") * 2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Service fee (5%)</span>
+                      <span>
+                        ₱{Math.round((parseInt(firstHourRate || "0") + parseInt(succeedingRate || "0") * 2) * 0.05)}
+                      </span>
+                    </div>
+                    <hr className="my-1 border-[#45c4d9]/20" />
+                    <div className="flex justify-between font-black text-[#202b7b]">
+                      <span>Total</span>
+                      <span>
+                        ₱{
+                          parseInt(firstHourRate || "0") +
+                          parseInt(succeedingRate || "0") * 2 +
+                          Math.round((parseInt(firstHourRate || "0") + parseInt(succeedingRate || "0") * 2) * 0.05)
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <p className="mb-4 mt-2 font-bold text-[#202b7b]">
                 Amenities
               </p>
 
@@ -394,99 +487,96 @@ export default function AddSlotPage() {
               </h2>
 
               <p className="mb-6 mt-2 text-lg text-gray-400">
-                Configure your operating hours.
+                Configure your operating hours per day.
               </p>
 
-              {/* TOGGLE */}
-              <div className="mb-6 flex items-center justify-between rounded-2xl bg-[#f7fafc] p-5">
-                <div>
-                  <p className="font-bold text-[#202b7b]">
-                    Open 24/7
-                  </p>
-
-                  <p className="text-sm text-gray-400">
-                    Always available
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setOpen247(!open247)}
-                  className={`relative flex h-8 w-16 items-center overflow-hidden rounded-full transition-all ${
-                    open247 ? "bg-[#45c4d9]" : "bg-gray-300"
-                  }`}
-                >
-                  <span
-                    className={`absolute left-1 top-1 h-6 w-6 rounded-full bg-white transition-transform duration-300 ${
-                      open247 ? "translate-x-8" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {!open247 && (
-                <div className="space-y-4">
-                  {timeSettings.map((item, index) => (
-                    <div
-                      key={item.day}
-                      className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-2xl bg-[#f7fafc] px-5 py-4"
-                    >
-                      <p className="font-bold text-[#202b7b]">
-                        {item.day}
-                      </p>
+              <div className="space-y-4">
+                {timeSettings.map((item, index) => (
+                  <div
+                    key={item.day}
+                    className="rounded-2xl bg-[#f7fafc] px-5 py-4"
+                  >
+                    {/* Day header row */}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-bold text-[#202b7b]">{item.day}</p>
 
                       <div className="flex items-center gap-2">
+                        {/* Open / Closed toggle */}
+                        <button
+                          type="button"
+                          onClick={() => toggleDayOpen(index)}
+                          className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                            item.isOpen
+                              ? "bg-[#45c4d9] text-white"
+                              : "bg-red-50 text-red-400"
+                          }`}
+                        >
+                          {item.isOpen ? "Open" : "Closed"}
+                        </button>
+
+                        {/* 24/7 toggle — only when day is open */}
+                        {item.isOpen && (
+                          <button
+                            type="button"
+                            onClick={() => toggleDay247(index)}
+                            className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                              item.is247
+                                ? "bg-[#45c4d9] text-white"
+                                : "border border-[#45c4d9] text-[#45c4d9]"
+                            }`}
+                          >
+                            24/7
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Time pickers — only when open AND not 24/7 */}
+                    {item.isOpen && !item.is247 && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
                         <select
                           value={item.from}
-                          onChange={(e) =>
-                            updateTime(index, "from", e.target.value)
-                          }
-                          className="h-11 rounded-xl border border-gray-200 px-3"
+                          onChange={(e) => updateTime(index, "from", e.target.value)}
+                          className="h-10 rounded-xl border border-gray-200 px-3 text-sm"
                         >
-                          {HOURS.map((h) => (
-                            <option key={h}>{h}</option>
-                          ))}
+                          {HOURS.map((h) => <option key={h}>{h}</option>)}
                         </select>
-
                         <select
                           value={item.fromPeriod}
-                          onChange={(e) =>
-                            updateTime(index, "fromPeriod", e.target.value)
-                          }
-                          className="h-11 rounded-xl border border-gray-200 px-3"
+                          onChange={(e) => updateTime(index, "fromPeriod", e.target.value)}
+                          className="h-10 rounded-xl border border-gray-200 px-3 text-sm"
                         >
                           <option>AM</option>
                           <option>PM</option>
                         </select>
-
-                        <span className="text-gray-400">to</span>
-
+                        <span className="text-sm text-gray-400">to</span>
                         <select
                           value={item.to}
-                          onChange={(e) =>
-                            updateTime(index, "to", e.target.value)
-                          }
-                          className="h-11 rounded-xl border border-gray-200 px-3"
+                          onChange={(e) => updateTime(index, "to", e.target.value)}
+                          className="h-10 rounded-xl border border-gray-200 px-3 text-sm"
                         >
-                          {HOURS.map((h) => (
-                            <option key={h}>{h}</option>
-                          ))}
+                          {HOURS.map((h) => <option key={h}>{h}</option>)}
                         </select>
-
                         <select
                           value={item.toPeriod}
-                          onChange={(e) =>
-                            updateTime(index, "toPeriod", e.target.value)
-                          }
-                          className="h-11 rounded-xl border border-gray-200 px-3"
+                          onChange={(e) => updateTime(index, "toPeriod", e.target.value)}
+                          className="h-10 rounded-xl border border-gray-200 px-3 text-sm"
                         >
                           <option>AM</option>
                           <option>PM</option>
                         </select>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    )}
+
+                    {/* 24/7 label when active */}
+                    {item.isOpen && item.is247 && (
+                      <p className="mt-2 text-sm font-semibold text-[#45c4d9]">
+                        Open all day · 24 hours
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
 
               <button
                 onClick={() => setStep(5)}
@@ -509,7 +599,7 @@ export default function AddSlotPage() {
               </p>
 
               <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-                <div className="flex h-[260px] items-center justify-center bg-[#dff7fa]">
+                <div className="flex h-65 items-center justify-center bg-[#dff7fa]">
                   {photoPreview ? (
                     <img
                       src={photoPreview}
@@ -537,8 +627,50 @@ export default function AddSlotPage() {
                     {description || "No description added."}
                   </p>
 
-                  <div className="mt-6 text-3xl font-black text-[#45c4d9]">
-                    ₱{hourlyRate || "0"}/hr
+                  {/* Pricing preview — matches Step 3 style */}
+                  <div className="mt-6 rounded-2xl border border-[#45c4d9]/30 bg-[#eefbfd] p-5">
+                    <p className="mb-3 text-base font-black text-[#202b7b]">
+                      ₱{firstHourRate || "0"}{" "}
+                      <span className="font-semibold text-gray-500">First hour</span>
+                      {succeedingRate && (
+                        <>
+                          {" "}+{" "}₱{succeedingRate}
+                          <span className="font-semibold text-gray-500">/Succeeding hour</span>
+                        </>
+                      )}
+                    </p>
+
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                      Example: 3 hr visit
+                    </p>
+
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div className="flex justify-between">
+                        <span>1st hour (base rate)</span>
+                        <span>₱{firstHourRate || 0}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>2 succeeding hours × ₱{succeedingRate || 0}</span>
+                        <span>₱{parseInt(succeedingRate || "0") * 2}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Service fee (5%)</span>
+                        <span>
+                          ₱{Math.round((parseInt(firstHourRate || "0") + parseInt(succeedingRate || "0") * 2) * 0.05)}
+                        </span>
+                      </div>
+                      <hr className="my-1 border-[#45c4d9]/20" />
+                      <div className="flex justify-between font-black text-[#202b7b]">
+                        <span>Total</span>
+                        <span>
+                          ₱{
+                            parseInt(firstHourRate || "0") +
+                            parseInt(succeedingRate || "0") * 2 +
+                            Math.round((parseInt(firstHourRate || "0") + parseInt(succeedingRate || "0") * 2) * 0.05)
+                          }
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

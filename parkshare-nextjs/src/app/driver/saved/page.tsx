@@ -11,12 +11,12 @@ type SavedSlot = {
   address: string | null;
   price_per_hour: number | null;
   image_url: string | null;
-  type: string | null;
 };
 
 export default function SavedSlotsPage() {
   const [savedSlots, setSavedSlots] = useState<SavedSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,35 +24,52 @@ export default function SavedSlotsPage() {
   }, []);
 
   async function fetchSavedSlots() {
+    setFetchError(null);
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
 
-      const { data } = await supabase
-        .from("saved_slots")
-        .select(`
-          slot_id,
-          parking_slots (
-            id,
-            title,
-            address,
-            price_per_hour,
-            image_url,
-            type
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (data) {
-        const slots = data
-          .map((item: any) => item.parking_slots)
-          .filter(Boolean) as SavedSlot[];
-        setSavedSlots(slots);
+      // Step 0 — verify auth session
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        setFetchError("Not signed in — please log in again.");
+        return;
       }
-    } catch (err) {
-      console.error("Error fetching saved slots:", err);
+
+      // Step 1 — get saved slot IDs for this user
+      const { data: savedRows, error: savedError } = await supabase
+        .from("saved_slots")
+        .select("slot_id")
+        .eq("user_id", user.id);
+
+      if (savedError) {
+        setFetchError(`saved_slots error: ${savedError.message}`);
+        return;
+      }
+
+      if (!savedRows || savedRows.length === 0) return;
+
+      const slotIds = savedRows
+        .map((r: any) => r.slot_id)
+        .filter(Boolean) as string[];
+
+      if (slotIds.length === 0) return;
+
+      // Step 2 — fetch the actual slot details
+      const { data: slotsData, error: slotsError } = await supabase
+        .from("parking_slots")
+        .select("id, title, address, price_per_hour, image_url")
+        .in("id", slotIds);
+
+      if (slotsError) {
+        setFetchError(`parking_slots error: ${slotsError.message}`);
+        return;
+      }
+
+      if (slotsData) setSavedSlots(slotsData as SavedSlot[]);
+    } catch (err: any) {
+      const msg = err?.message ?? String(err);
+      setFetchError(msg);
+      console.error("fetchSavedSlots error:", err);
     } finally {
       setLoading(false);
     }
@@ -93,6 +110,12 @@ export default function SavedSlotsPage() {
       </div>
 
       {/* Content */}
+      {fetchError && (
+        <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-600">
+          <strong>Error:</strong> {fetchError}
+        </div>
+      )}
+
       {loading ? (
         <p className="py-12 text-center text-sm text-slate-400 animate-pulse">
           Loading your saved slots…
@@ -128,7 +151,7 @@ export default function SavedSlotsPage() {
                   className="h-full w-full object-cover"
                 />
                 <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm backdrop-blur-sm">
-                  {slot.type || "Standard"}
+                  Standard
                 </span>
                 <button
                   onClick={() => handleUnsave(slot.id)}
@@ -162,9 +185,12 @@ export default function SavedSlotsPage() {
                   <span className="text-sm font-extrabold text-park-teal">
                     ₱{slot.price_per_hour ?? 0}/hr
                   </span>
-                  <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-500">
-                    ● Available
-                  </span>
+                  <Link
+                    href={`/driver/slots/${slot.id}`}
+                    className="rounded-xl bg-park-teal px-3 py-1.5 text-xs font-bold text-white transition hover:bg-park-teal-dark"
+                  >
+                    View Slot
+                  </Link>
                 </div>
               </div>
             </div>

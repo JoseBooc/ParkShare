@@ -6,14 +6,20 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
+const VEHICLE_TYPES = ["Sedan", "SUV", "Pickup Truck", "Motorcycle", "Van", "PUV"];
+const AMENITY_OPTIONS = ["CCTV", "Sheltered", "24/7 Access", "EV Charging", "Security Guard"];
+
 export default function EditSlotPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
+  const [succeedingRate, setSucceedingRate] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const [isFetching, setIsFetching] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +40,10 @@ export default function EditSlotPage() {
         setTitle(data.title ?? "");
         setAddress(data.address ?? "");
         setPrice(data.price_per_hour?.toString() ?? "");
+        setSucceedingRate(data.succeeding_rate?.toString() ?? "");
         setDescription(data.description ?? "");
+        setSelectedAmenities(Array.isArray(data.amenities) ? data.amenities : []);
+        setSelectedVehicles(Array.isArray(data.vehicle_types) ? data.vehicle_types : []);
       }
       setIsFetching(false);
     }
@@ -54,7 +63,10 @@ export default function EditSlotPage() {
           title,
           address,
           price_per_hour: parseFloat(price),
+          succeeding_rate: parseFloat(succeedingRate) || 0,
           description,
+          amenities: selectedAmenities,
+          vehicle_types: selectedVehicles,
         })
         .eq("id", id);
 
@@ -147,10 +159,10 @@ export default function EditSlotPage() {
               />
             </div>
 
-            {/* HOURLY PRICE */}
+            {/* FIRST HOUR PRICE */}
             <div className="mb-5">
               <label className="mb-2 block text-sm font-bold text-[#1E2A78]">
-                Hourly Price (₱/hr)
+                First Hour Rate (₱)
               </label>
               <div className="relative">
                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-base font-bold text-gray-400">
@@ -161,8 +173,28 @@ export default function EditSlotPage() {
                   min="1"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder="50"
+                  placeholder="35"
                   required
+                  className="w-full rounded-2xl border border-gray-200 py-3 pl-9 pr-5 text-base text-gray-700 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
+                />
+              </div>
+            </div>
+
+            {/* SUCCEEDING HOUR RATE */}
+            <div className="mb-5">
+              <label className="mb-2 block text-sm font-bold text-[#1E2A78]">
+                Succeeding Hour Rate (₱)
+              </label>
+              <div className="relative">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-base font-bold text-gray-400">
+                  ₱
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  value={succeedingRate}
+                  onChange={(e) => setSucceedingRate(e.target.value)}
+                  placeholder="25"
                   className="w-full rounded-2xl border border-gray-200 py-3 pl-9 pr-5 text-base text-gray-700 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
                 />
               </div>
@@ -195,6 +227,60 @@ export default function EditSlotPage() {
                 rows={4}
                 className="w-full resize-none rounded-2xl border border-gray-200 px-5 py-3 text-base text-gray-700 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
               />
+            </div>
+
+            {/* VEHICLE TYPES */}
+            <div className="mb-6">
+              <label className="mb-2 block text-sm font-bold text-[#1E2A78]">
+                Vehicle Compatibility
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {VEHICLE_TYPES.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() =>
+                      setSelectedVehicles((prev) =>
+                        prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
+                      )
+                    }
+                    className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                      selectedVehicles.includes(v)
+                        ? "border-park-teal bg-park-teal text-white"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-park-teal"
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* AMENITIES */}
+            <div className="mb-8">
+              <label className="mb-2 block text-sm font-bold text-[#1E2A78]">
+                Amenities
+              </label>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {AMENITY_OPTIONS.map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() =>
+                      setSelectedAmenities((prev) =>
+                        prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
+                      )
+                    }
+                    className={`rounded-2xl border py-2.5 text-sm font-semibold transition ${
+                      selectedAmenities.includes(a)
+                        ? "border-park-teal bg-park-teal text-white"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-park-teal"
+                    }`}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* ACTIONS */}

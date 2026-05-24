@@ -1,29 +1,54 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Bell, User, ChevronDown, Bookmark, LogOut } from "lucide-react";
 
 export default function DriverNavbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+        {/* Logo */}
         <Link href="/driver" className="flex items-center">
-          <Image
+          <img
             src="/logo.png"
-            alt="ParkShare"
-            width={170}
-            height={50}
-            className="h-auto w-[140px] object-contain"
-            priority
+            alt="ParkShare Logo"
+            className="h-8 w-auto object-contain"
           />
         </Link>
 
+        {/* Center Nav */}
+        <nav className="hidden items-center gap-7 sm:flex">
+          <Link
+            href="/driver"
+            className={`text-sm font-semibold transition-colors ${
+              pathname === "/driver"
+                ? "text-park-navy"
+                : "text-gray-400 hover:text-park-navy"
+            }`}
+          >
+            Find Parking
+          </Link>
+          <Link
+            href="/driver/saved"
+            className={`text-sm font-semibold transition-colors ${
+              pathname === "/driver/saved"
+                ? "text-park-navy"
+                : "text-gray-400 hover:text-park-navy"
+            }`}
+          >
+            Saved Space
+          </Link>
+        </nav>
+
+        {/* Right side */}
         <div className="relative flex items-center gap-3">
+          {/* Bell */}
           <button
             type="button"
             onClick={() => {
@@ -40,24 +65,16 @@ export default function DriverNavbar() {
 
           {showNotifications && (
             <div className="absolute right-12 top-12 w-80 rounded-2xl border border-gray-100 bg-white p-4 shadow-xl">
-              <h3 className="text-sm font-black text-park-navy">
-                Notifications
-              </h3>
-
+              <h3 className="text-sm font-black text-park-navy">Notifications</h3>
               <div className="mt-3 space-y-3">
                 <div className="rounded-xl bg-[#E8F9FD] p-3">
-                  <p className="text-sm font-bold text-park-navy">
-                    Booking confirmed
-                  </p>
+                  <p className="text-sm font-bold text-park-navy">Booking confirmed</p>
                   <p className="mt-1 text-xs text-slate-500">
                     Your parking reservation has been saved.
                   </p>
                 </div>
-
                 <div className="rounded-xl bg-[#E8F9FD] p-3">
-                  <p className="text-sm font-bold text-park-navy">
-                    Message from host
-                  </p>
+                  <p className="text-sm font-bold text-park-navy">Message from host</p>
                   <p className="mt-1 text-xs text-slate-500">
                     The host replied to your parking inquiry.
                   </p>
@@ -66,6 +83,7 @@ export default function DriverNavbar() {
             </div>
           )}
 
+          {/* Avatar */}
           <button
             type="button"
             onClick={() => {
@@ -89,7 +107,6 @@ export default function DriverNavbar() {
                 <User size={16} />
                 My Profile
               </Link>
-
               <Link
                 href="/driver/saved"
                 className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-[#F6F8FB] hover:text-park-navy"
@@ -97,7 +114,6 @@ export default function DriverNavbar() {
                 <Bookmark size={16} />
                 Saved Place
               </Link>
-
               <Link
                 href="/auth/login"
                 className="flex items-center gap-3 border-t border-gray-100 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50"

@@ -19,6 +19,7 @@ type ParkingSlot = {
   title: string;
   address: string;
   price_per_hour: number;
+  succeeding_rate?: number | null;
   description: string;
   status: string;
   image_url?: string | null;
@@ -141,11 +142,40 @@ export default function SlotDetailPage() {
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-500">
                 <Wallet size={18} />
               </div>
-              <p className="text-xs font-semibold text-gray-400">Hourly Rate</p>
-              <p className="mt-1 text-3xl font-extrabold text-[#1E2A78]">
-                ₱{slot.price_per_hour}
-                <span className="text-base font-semibold text-gray-400">/hr</span>
-              </p>
+              <p className="text-xs font-semibold text-gray-400">Pricing</p>
+
+              <div className="mt-2 flex flex-wrap items-end gap-x-6 gap-y-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    First Hour
+                  </p>
+                  <p className="text-3xl font-extrabold text-[#1E2A78]">
+                    ₱{slot.price_per_hour}
+                    <span className="text-base font-semibold text-gray-400">/hr</span>
+                  </p>
+                </div>
+
+                {slot.succeeding_rate != null && slot.succeeding_rate > 0 && (
+                  <>
+                    <span className="mb-1 text-xl font-bold text-gray-300">+</span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        Succeeding Hours
+                      </p>
+                      <p className="text-3xl font-extrabold text-cyan-500">
+                        ₱{slot.succeeding_rate}
+                        <span className="text-base font-semibold text-gray-400">/hr</span>
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {slot.succeeding_rate != null && slot.succeeding_rate > 0 && (
+                <p className="mt-3 text-xs text-gray-400">
+                  First hour billed at ₱{slot.price_per_hour}, every hour after at ₱{slot.succeeding_rate}.
+                </p>
+              )}
             </div>
 
             {/* DESCRIPTION */}

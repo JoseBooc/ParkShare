@@ -69,18 +69,18 @@ export default function HostDashboard() {
   return (
     <main className="min-h-screen bg-white">
       {/* TOP HEADER */}
-      <header className="flex items-center justify-between border-b border-gray-100 bg-[#eefbfd] px-8 py-5">
+      <header className="flex items-center justify-between border-b border-gray-100 bg-[#eefbfd] px-4 py-4 sm:px-8 sm:py-5">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#1E2A78]">
+          <h1 className="text-xl font-extrabold text-[#1E2A78] sm:text-3xl">
             Host Dashboard
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-0.5 text-xs text-gray-500 sm:mt-1 sm:text-sm">
             Welcome back, {profile?.full_name || "Host"}
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* NOTIFICATION */}
           <div className="relative">
             <button
@@ -203,23 +203,23 @@ export default function HostDashboard() {
       </header>
 
       {/* DASHBOARD CONTENT */}
-      <section className="px-8 py-8">
+      <section className="px-4 py-6 sm:px-8 sm:py-8">
         {/* STATS */}
-        <div className="grid gap-5 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-4">
           {stats.map(({ label, value, icon: Icon }) => (
             <div
               key={label}
-              className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"
+              className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6"
             >
-              <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-50 text-cyan-500">
-                <Icon size={20} />
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-50 text-cyan-500 sm:mb-5 sm:h-11 sm:w-11 sm:rounded-2xl">
+                <Icon size={18} />
               </div>
 
-              <p className="text-sm font-semibold text-gray-400">
+              <p className="text-xs font-semibold text-gray-400 sm:text-sm">
                 {label}
               </p>
 
-              <p className="mt-1 text-3xl font-extrabold text-[#1E2A78]">
+              <p className="mt-1 text-2xl font-extrabold text-[#1E2A78] sm:text-3xl">
                 {value}
               </p>
             </div>
@@ -227,7 +227,7 @@ export default function HostDashboard() {
         </div>
 
         {/* OVERVIEW */}
-        <aside className="mt-8 w-full max-w-sm rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+        <aside className="mt-6 w-full rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:mt-8 sm:max-w-sm sm:p-6">
           <h2 className="text-2xl font-extrabold text-[#1E2A78]">
             Today’s Overview
           </h2>

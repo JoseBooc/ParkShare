@@ -60,7 +60,7 @@ export default function HostLayout({
   return (
     <div className="flex min-h-screen bg-[#f7fafc]">
       <HostSidebar />
-      <div className="flex-1">{children}</div>
+      <div className="flex-1 pb-16 md:pb-0">{children}</div>
     </div>
   );
 }

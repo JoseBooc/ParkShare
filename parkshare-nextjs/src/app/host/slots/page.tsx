@@ -58,48 +58,48 @@ export default function MySlotsPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <header className="flex flex-col gap-5 border-b border-gray-100 bg-[#eefbfd] px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+      <header className="border-b border-gray-100 bg-[#eefbfd] px-4 py-5 sm:px-8 sm:py-6">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-park-teal">
+          <p className="text-xs font-bold uppercase tracking-wide text-park-teal sm:text-sm">
             Host Management
           </p>
 
-          <h1 className="mt-1 text-3xl font-extrabold text-park-navy">
+          <h1 className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">
             My Parking Spaces
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-0.5 text-xs text-gray-500 sm:mt-1 sm:text-sm">
             Manage your listed slots, pricing, and booking performance.
           </p>
         </div>
       </header>
 
-      <section className="px-8 py-8">
-        <div className="mb-8 grid gap-5 md:grid-cols-3">
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
-              <ParkingCircle size={20} />
+      <section className="px-4 py-6 sm:px-8 sm:py-8">
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:mb-8 sm:gap-5 md:grid-cols-3">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-park-teal-light text-park-teal sm:mb-4 sm:h-11 sm:w-11 sm:rounded-2xl">
+              <ParkingCircle size={18} />
             </div>
-            <p className="text-sm font-semibold text-gray-400">Active Spaces</p>
-            <p className="mt-1 text-3xl font-extrabold text-park-navy">
+            <p className="text-xs font-semibold text-gray-400 sm:text-sm">Active Spaces</p>
+            <p className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">
               {isLoading ? "…" : slots.length}
             </p>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
-              <CalendarCheck size={20} />
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-park-teal-light text-park-teal sm:mb-4 sm:h-11 sm:w-11 sm:rounded-2xl">
+              <CalendarCheck size={18} />
             </div>
-            <p className="text-sm font-semibold text-gray-400">Total Bookings</p>
-            <p className="mt-1 text-3xl font-extrabold text-park-navy">—</p>
+            <p className="text-xs font-semibold text-gray-400 sm:text-sm">Total Bookings</p>
+            <p className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">—</p>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
-              <Wallet size={20} />
+          <div className="col-span-2 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 md:col-span-1">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-park-teal-light text-park-teal sm:mb-4 sm:h-11 sm:w-11 sm:rounded-2xl">
+              <Wallet size={18} />
             </div>
-            <p className="text-sm font-semibold text-gray-400">Total Earned</p>
-            <p className="mt-1 text-3xl font-extrabold text-park-navy">—</p>
+            <p className="text-xs font-semibold text-gray-400 sm:text-sm">Total Earned</p>
+            <p className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">—</p>
           </div>
         </div>
 
