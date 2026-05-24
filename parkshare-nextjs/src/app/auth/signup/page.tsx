@@ -50,6 +50,13 @@ export default function SignupPage() {
         return;
       }
 
+      if (data.user) {
+        await supabase.from("profiles").upsert(
+          { id: data.user.id, full_name: fullName, role: "driver" },
+          { onConflict: "id" }
+        );
+      }
+
       if (data.session) {
         router.push("/driver");
         return;

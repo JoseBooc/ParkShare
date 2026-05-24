@@ -114,13 +114,15 @@ export default function DriverNavbar() {
                 <Bookmark size={16} />
                 Saved Place
               </Link>
-              <Link
-                href="/auth/login"
-                className="flex items-center gap-3 border-t border-gray-100 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50"
-              >
-                <LogOut size={16} />
-                Sign Out
-              </Link>
+              <form action="/auth/signout" method="POST">
+                <button
+                  type="submit"
+                  className="flex w-full items-center gap-3 border-t border-gray-100 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </form>
             </div>
           )}
         </div>

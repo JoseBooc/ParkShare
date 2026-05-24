@@ -179,8 +179,7 @@ export default function SlotDetailPage() {
         .from("bookings")
         .insert([{ user_id: user.id, slot_id: id, status: "active" }]);
       if (error) throw error;
-      alert("Slot booked successfully! Your space is locked in.");
-      router.push("/driver");
+      router.push(`/driver/slots/${id}/guide`);
     } catch {
       alert("Failed to complete booking. Please try again.");
     } finally {

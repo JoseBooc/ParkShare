@@ -16,6 +16,8 @@ export default function HostDashboard() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [slotCount, setSlotCount] = useState<number>(0);
+  const [bookingCount, setBookingCount] = useState<number>(0);
+  const [totalEarned, setTotalEarned] = useState<number>(0);
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function HostDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [{ count }, { data: profileData }] = await Promise.all([
+      const [{ count: sCount }, { data: profileData }, { data: slots }] = await Promise.all([
         supabase
           .from("parking_slots")
           .select("*", { count: "exact", head: true })
@@ -35,10 +37,33 @@ export default function HostDashboard() {
           .select("full_name")
           .eq("id", user.id)
           .single(),
+        supabase
+          .from("parking_slots")
+          .select("id, price_per_hour")
+          .eq("host_id", user.id),
       ]);
 
-      setSlotCount(count ?? 0);
+      setSlotCount(sCount ?? 0);
       setProfile(profileData);
+
+      if (slots && slots.length > 0) {
+        const slotIds = slots.map((s) => s.id);
+        const priceMap = Object.fromEntries(
+          slots.map((s) => [s.id, s.price_per_hour ?? 0])
+        );
+
+        const { data: bookings, count: bCount } = await supabase
+          .from("bookings")
+          .select("slot_id", { count: "exact" })
+          .in("slot_id", slotIds);
+
+        setBookingCount(bCount ?? 0);
+        const earned = (bookings ?? []).reduce(
+          (sum, b) => sum + (priceMap[b.slot_id] ?? 0),
+          0
+        );
+        setTotalEarned(earned);
+      }
     }
     fetchDashboardData();
   }, []);
@@ -51,17 +76,17 @@ export default function HostDashboard() {
     },
     {
       label: "Total Bookings",
-      value: "—",
+      value: bookingCount.toString(),
       icon: CalendarCheck,
     },
     {
       label: "Total Earned",
-      value: "—",
+      value: totalEarned > 0 ? `₱${totalEarned.toLocaleString()}` : "₱0",
       icon: Wallet,
     },
     {
       label: "Average Rating",
-      value: "—",
+      value: "N/A",
       icon: Star,
     },
   ];
