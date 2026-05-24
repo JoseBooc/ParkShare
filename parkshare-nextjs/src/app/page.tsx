@@ -18,10 +18,11 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     const supabase = createClient();
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin).replace(/\/$/, "");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/driver`,
+        redirectTo: `${siteUrl}/auth/callback?next=/driver`,
       },
     });
     if (error) console.error("Google auth error:", error.message);

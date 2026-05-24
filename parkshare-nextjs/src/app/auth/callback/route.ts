@@ -6,19 +6,18 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/driver";
-  const origin = requestUrl.origin;
+
+  // Use NEXT_PUBLIC_SITE_URL so Vercel serverless functions always redirect
+  // to the real public domain instead of an internal Vercel origin URL.
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? requestUrl.origin).replace(/\/$/, "");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/auth/login`);
+    return NextResponse.redirect(`${siteUrl}/`);
   }
 
   const cookieStore = await cookies();
 
-  const cookiesToSet: {
-    name: string;
-    value: string;
-    options: any;
-  }[] = [];
+  const pendingCookies: { name: string; value: string; options: any }[] = [];
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,23 +29,52 @@ export async function GET(request: Request) {
         },
         setAll(items) {
           items.forEach(({ name, value, options }) => {
-            cookiesToSet.push({ name, value, options });
+            try { cookieStore.set(name, value, options); } catch {}
+            pendingCookies.push({ name, value, options });
           });
         },
       },
     }
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    console.error("Auth callback error:", error.message);
-    return NextResponse.redirect(`${origin}/auth/login`);
+  if (error || !exchangeData.user) {
+    console.error("Auth callback error:", error?.message ?? "no user returned");
+    return NextResponse.redirect(`${siteUrl}/`);
   }
 
-  const response = NextResponse.redirect(`${origin}${next}`);
+  const user = exchangeData.user;
 
-  cookiesToSet.forEach(({ name, value, options }) => {
+  // Upsert profile so every Google sign-in has a row in profiles
+  const name =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    [user.user_metadata?.given_name, user.user_metadata?.family_name]
+      .filter(Boolean)
+      .join(" ") ||
+    user.email?.split("@")[0] ||
+    null;
+
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (existingProfile) {
+    if (name) {
+      await supabase.from("profiles").update({ full_name: name }).eq("id", user.id);
+    }
+  } else {
+    await supabase.from("profiles").insert({ id: user.id, full_name: name, role: "driver" });
+  }
+
+  const role = existingProfile?.role ?? "driver";
+  const redirectPath = next !== "/driver" ? next : role === "host" ? "/host/slots" : "/driver";
+
+  const response = NextResponse.redirect(`${siteUrl}${redirectPath}`);
+  pendingCookies.forEach(({ name, value, options }) => {
     response.cookies.set(name, value, options);
   });
 
