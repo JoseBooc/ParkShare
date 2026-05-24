@@ -1,127 +1,132 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { User, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import Image from "next/image";
-import NotificationBell from "@/components/ui/NotificationBell";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bell, User, ChevronDown, Bookmark, LogOut } from "lucide-react";
 
 export default function DriverNavbar() {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-30 flex items-center justify-between border-b border-gray-200 bg-white px-8 py-4">
-      <Link href="/driver" className="flex items-center">
-        <Image
-          src="/logo.png"
-          alt="ParkShare Logo"
-          width={190}
-          height={60}
-          className="h-12 w-auto object-contain"
-          priority
-        />
-      </Link>
-
-      <div className="hidden sm:flex items-center gap-8">
-        <Link
-          href="/driver"
-          className={`text-sm font-medium transition-colors ${
-            pathname === "/driver"
-              ? "text-park-teal border-b-2 border-park-teal pb-1"
-              : "text-gray-500 hover:text-park-navy"
-          }`}
-        >
-          Find Parking
+    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+        {/* Logo */}
+        <Link href="/driver" className="flex items-center">
+          <img
+            src="/logo.png"
+            alt="ParkShare Logo"
+            className="h-8 w-auto object-contain"
+          />
         </Link>
 
-        <Link
-          href="/driver/saved"
-          className={`text-sm font-medium transition-colors ${
-            pathname === "/driver/saved"
-              ? "text-park-teal border-b-2 border-park-teal pb-1"
-              : "text-gray-500 hover:text-park-navy"
-          }`}
-        >
-          Saved Slots
-        </Link>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="flex items-center rounded-full bg-park-navy p-1">
-          <button className="rounded-full bg-white px-5 py-1.5 text-sm font-semibold text-park-navy">
-            Driver
-          </button>
-
-          <button
-            onClick={() => router.push("/host")}
-            className="rounded-full px-5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/10"
+        {/* Center Nav */}
+        <nav className="hidden items-center gap-7 sm:flex">
+          <Link
+            href="/driver"
+            className={`text-sm font-semibold transition-colors ${
+              pathname === "/driver"
+                ? "text-park-navy"
+                : "text-gray-400 hover:text-park-navy"
+            }`}
           >
-            Host
-          </button>
-        </div>
-
-        <NotificationBell />
-
-        <div className="relative">
-          <button
-            onClick={() => setProfileOpen((v) => !v)}
-            className="flex items-center gap-1 rounded-full p-1.5 transition-colors hover:bg-gray-100"
+            Find Parking
+          </Link>
+          <Link
+            href="/driver/saved"
+            className={`text-sm font-semibold transition-colors ${
+              pathname === "/driver/saved"
+                ? "text-park-navy"
+                : "text-gray-400 hover:text-park-navy"
+            }`}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-park-teal">
-              <User size={15} className="text-white" />
-            </div>
+            Saved Space
+          </Link>
+        </nav>
 
-            <ChevronDown size={14} className="text-gray-500" />
+        {/* Right side */}
+        <div className="relative flex items-center gap-3">
+          {/* Bell */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowNotifications((v) => !v);
+              setShowProfile(false);
+            }}
+            className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-park-navy"
+          >
+            <Bell size={20} />
+            <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white">
+              2
+            </span>
           </button>
 
-          {profileOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setProfileOpen(false)}
-              />
-
-              <div className="absolute right-0 top-12 z-50 w-48 overflow-hidden rounded-xl border border-gray-100 bg-white py-2 shadow-xl">
-                <div className="border-b border-gray-100 px-4 py-2">
-                  <p className="text-sm font-semibold text-park-navy">
-                    Andrew Jacob
+          {showNotifications && (
+            <div className="absolute right-12 top-12 w-80 rounded-2xl border border-gray-100 bg-white p-4 shadow-xl">
+              <h3 className="text-sm font-black text-park-navy">Notifications</h3>
+              <div className="mt-3 space-y-3">
+                <div className="rounded-xl bg-[#E8F9FD] p-3">
+                  <p className="text-sm font-bold text-park-navy">Booking confirmed</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Your parking reservation has been saved.
                   </p>
-                  <p className="text-xs text-gray-400">Driver</p>
                 </div>
-
-                <Link
-                  href="/driver"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  onClick={() => setProfileOpen(false)}
-                >
-                  My Profile
-                </Link>
-
-                <Link
-                  href="/driver/saved"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  onClick={() => setProfileOpen(false)}
-                >
-                  Saved Slots
-                </Link>
-
-                <hr className="my-1 border-gray-100" />
-
-                <Link
-                  href="/auth/login"
-                  className="block px-4 py-2 text-sm text-red-500 hover:bg-gray-50"
-                  onClick={() => setProfileOpen(false)}
-                >
-                  Sign Out
-                </Link>
+                <div className="rounded-xl bg-[#E8F9FD] p-3">
+                  <p className="text-sm font-bold text-park-navy">Message from host</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    The host replied to your parking inquiry.
+                  </p>
+                </div>
               </div>
-            </>
+            </div>
+          )}
+
+          {/* Avatar */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowProfile((v) => !v);
+              setShowNotifications(false);
+            }}
+            className="flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-1 shadow-sm transition hover:shadow-md"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-park-teal text-white">
+              <User size={16} />
+            </div>
+            <ChevronDown size={15} className="text-slate-500" />
+          </button>
+
+          {showProfile && (
+            <div className="absolute right-0 top-12 w-48 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
+              <Link
+                href="/driver/profile"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-[#F6F8FB] hover:text-park-navy"
+              >
+                <User size={16} />
+                My Profile
+              </Link>
+              <Link
+                href="/driver/saved"
+                className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-[#F6F8FB] hover:text-park-navy"
+              >
+                <Bookmark size={16} />
+                Saved Place
+              </Link>
+              <form action="/auth/signout" method="POST">
+                <button
+                  type="submit"
+                  className="flex w-full items-center gap-3 border-t border-gray-100 px-4 py-3 text-sm font-semibold text-red-500 hover:bg-red-50"
+                >
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </div>
-    </nav>
+    </header>
   );
 }

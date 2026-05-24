@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search, MapPin, Navigation, Sparkles } from "lucide-react";
-import ParkingCard from "@/components/driver/ParkingCard";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { Search, Heart, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import Link from "next/link";
 import FilterDropdown, { type Filters } from "@/components/driver/FilterDropdown";
-import { PARKING_SLOTS } from "@/lib/mock-data";
+import { createClient } from "@/utils/supabase/client";
 
 const DEFAULT_FILTERS: Filters = {
   maxPrice: "",
@@ -15,154 +15,332 @@ const DEFAULT_FILTERS: Filters = {
 export default function DriverDashboard() {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [parkingSlots, setParkingSlots] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [myBookings, setMyBookings] = useState<any[]>([]);
+  const [savedSlotIds, setSavedSlotIds] = useState<string[]>([]);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  async function loadSavedSlots() {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("saved_slots")
+        .select("slot_id")
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("saved_slots SELECT error:", error.message, error.details);
+        return;
+      }
+      if (data) setSavedSlotIds(data.map((item: any) => item.slot_id));
+    } catch (err) {
+      console.error("Error loading saved slots:", err);
+    }
+  }
+
+  async function loadDriverBookings() {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: bookingsData } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          created_at,
+          parking_slots (
+            title,
+            address,
+            price_per_hour
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (bookingsData) setMyBookings(bookingsData);
+    } catch (err) {
+      console.error("Error loading driver bookings:", err);
+    }
+  }
+
+  useEffect(() => {
+    async function fetchAvailableSlots() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("parking_slots")
+          .select("*")
+          .eq("status", "active")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        if (data) setParkingSlots(data);
+      } catch (err) {
+        console.error("Error loading driver marketplace feed:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAvailableSlots();
+    loadDriverBookings();
+    loadSavedSlots();
+  }, []);
 
   const filtered = useMemo(() => {
-    return PARKING_SLOTS.filter((slot) => {
+    return parkingSlots.filter((slot) => {
       const matchSearch =
         !search ||
-        slot.name.toLowerCase().includes(search.toLowerCase()) ||
-        slot.address.toLowerCase().includes(search.toLowerCase()) ||
-        slot.city.toLowerCase().includes(search.toLowerCase());
+        (slot.title ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (slot.address ?? "").toLowerCase().includes(search.toLowerCase());
 
       const matchPrice =
-        !filters.maxPrice || slot.price <= Number(filters.maxPrice);
+        !filters.maxPrice ||
+        (slot.price_per_hour ?? 0) <= Number(filters.maxPrice);
 
-      const matchAmenities =
-        filters.amenities.length === 0 ||
-        filters.amenities.every((a) => slot.amenities.includes(a));
-
-      const matchVehicle =
-        filters.vehicleTypes.length === 0 ||
-        filters.vehicleTypes.some((v) => slot.vehicleTypes.includes(v));
-
-      return matchSearch && matchPrice && matchAmenities && matchVehicle;
+      return matchSearch && matchPrice;
     });
-  }, [search, filters]);
+  }, [search, filters, parkingSlots]);
+
+  const toggleSaveSlot = async (slotId: string) => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Please sign in to save your favorite slots!");
+      return;
+    }
+
+    const isSaved = savedSlotIds.includes(slotId);
+
+    if (isSaved) {
+      const { error } = await supabase
+        .from("saved_slots")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("slot_id", slotId);
+      if (error) {
+        console.error("saved_slots DELETE error:", error.message);
+        return;
+      }
+      setSavedSlotIds((prev) => prev.filter((id) => id !== slotId));
+    } else {
+      const { error } = await supabase
+        .from("saved_slots")
+        .insert([{ user_id: user.id, slot_id: slotId }]);
+      if (error) {
+        console.error("saved_slots INSERT error:", error.message);
+        return;
+      }
+      setSavedSlotIds((prev) => [...prev, slotId]);
+    }
+  };
 
   return (
-    <main className="min-h-screen bg-white">
-      <section className="bg-gradient-to-br from-[#eefbfd] via-white to-[#f7ffff] px-6 py-10">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-            <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-park-teal shadow-sm">
-                <Sparkles size={16} />
-                Smart Parking, Made Simple
-              </div>
+    <main className="min-h-screen bg-[#f8f9fb]">
+      {/* HERO */}
+      <section className="bg-white px-4 pb-8 pt-10 sm:px-6 sm:pb-10 sm:pt-12">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-4xl font-extrabold leading-tight text-park-navy sm:text-5xl lg:text-6xl">
+            Parking made{" "}
+            <span className="text-park-teal">simple</span>
+          </h1>
 
-              <h1 className="text-4xl font-extrabold leading-tight text-park-navy sm:text-5xl">
-                Find parking before you arrive.
-              </h1>
+          <p className="mt-3 text-sm text-gray-400 sm:mt-4 sm:text-base">
+            Find and reserve nearby parking before you arrive.
+          </p>
 
-              <p className="mt-4 max-w-xl text-base leading-7 text-gray-500">
-                Search nearby available parking spaces, compare prices, and
-                reserve a slot before going to your destination.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                  <p className="text-xs font-semibold text-gray-400">
-                    Available Spots
-                  </p>
-                  <p className="text-xl font-extrabold text-park-navy">
-                    {PARKING_SLOTS.length}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                  <p className="text-xs font-semibold text-gray-400">
-                    Starting Price
-                  </p>
-                  <p className="text-xl font-extrabold text-park-navy">
-                    ₱35/hr
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
-                  <p className="text-xs font-semibold text-gray-400">
-                    Location
-                  </p>
-                  <p className="text-xl font-extrabold text-park-navy">
-                    Davao
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-lg">
-              <div className="flex h-64 items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-park-teal-light to-park-teal/30">
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
-                    <MapPin size={30} className="text-park-teal" />
-                  </div>
-
-                  <p className="text-lg font-extrabold text-park-navy">
-                    Nearby Parking Map
-                  </p>
-
-                  <p className="mt-1 text-sm text-gray-500">
-                    Live preview for available spaces
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 rounded-[2rem] bg-white p-4 shadow-sm">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="relative flex-1">
-                <Search
-                  size={18}
-                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search location, city, or parking name"
-                  className="w-full rounded-full border-2 border-park-teal bg-white py-3.5 pl-12 pr-4 text-sm outline-none transition-colors focus:border-park-teal-dark"
-                />
-              </div>
-
-              <FilterDropdown filters={filters} onApply={setFilters} />
-
-              <button className="flex items-center justify-center gap-2 rounded-full bg-park-navy px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-park-navy/90">
-                <Navigation size={16} />
-                Use Location
-              </button>
-            </div>
+          {/* Search bar */}
+          <div className="mt-6 flex items-center gap-2 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 shadow-sm sm:mt-8 sm:gap-3 sm:px-5 sm:py-3.5">
+            <Search size={17} className="shrink-0 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search Location"
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+            />
+            <FilterDropdown filters={filters} onApply={setFilters} />
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-8">
-        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-extrabold text-park-navy">
-              Available parking spots near you
-            </h2>
+      {/* AVAILABLE SLOTS */}
+      <section className="py-6 sm:py-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-4 flex items-center justify-between sm:mb-5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <h2 className="text-base font-extrabold text-park-navy sm:text-xl">
+                Available parking spots near you
+              </h2>
+              {!loading && (
+                <span className="text-xs font-semibold text-gray-400 sm:text-sm">
+                  ({filtered.length} spaces)
+                </span>
+              )}
+            </div>
 
-            <p className="mt-1 text-sm text-gray-400">
-              {filtered.length} spots found based on your search.
-            </p>
+            {!loading && filtered.length > 0 && (
+              <div className="hidden gap-2 sm:flex">
+                <button
+                  onClick={() => carouselRef.current?.scrollBy({ left: -280, behavior: "smooth" })}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-park-navy hover:text-white"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  onClick={() => carouselRef.current?.scrollBy({ left: 280, behavior: "smooth" })}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-park-navy hover:text-white"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-gray-200 bg-white py-16 text-center">
-            <p className="text-lg font-bold text-park-navy">No spots found</p>
-            <p className="mt-1 text-sm text-gray-400">
-              Try adjusting your search or filters.
-            </p>
+        {loading ? (
+          <div className="px-6 text-center text-sm text-slate-400 animate-pulse">
+            Searching for live spaces…
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="rounded-3xl border-2 border-dashed border-slate-100 p-10 text-center text-sm text-slate-400">
+              {parkingSlots.length === 0
+                ? "No active parking spaces listed yet. Check back soon!"
+                : "No spots match your search. Try adjusting your filters."}
+            </div>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            ref={carouselRef}
+            className="flex gap-4 overflow-x-auto scroll-smooth px-4 pb-4 snap-x snap-mandatory scrollbar-none sm:gap-5 sm:px-6"
+          >
             {filtered.map((slot) => (
-              <ParkingCard key={slot.id} slot={slot} />
+              <div
+                key={slot.id}
+                className="flex w-[72vw] shrink-0 snap-start flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition hover:shadow-md sm:w-65"
+              >
+                {/* Image */}
+                <div className="p-3 pb-0">
+                  <div className="relative h-44 w-full overflow-hidden rounded-2xl bg-slate-100">
+                    <img
+                      src={slot.image_url || "/placeholder-parking.jpg"}
+                      alt={slot.title}
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      onClick={() => toggleSaveSlot(slot.id)}
+                      className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-rose-50"
+                      aria-label={savedSlotIds.includes(slot.id) ? "Remove from saved" : "Save slot"}
+                    >
+                      <Heart
+                        size={16}
+                        className={
+                          savedSlotIds.includes(slot.id)
+                            ? "fill-rose-500 text-rose-500"
+                            : "text-slate-300"
+                        }
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="p-4">
+                  <h4 className="line-clamp-1 text-sm font-bold text-slate-800">
+                    {slot.title}
+                  </h4>
+                  <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">
+                    {slot.address || "No address specified"}
+                  </p>
+
+                  <div className="mt-1.5 flex items-center gap-1">
+                    <Star size={12} className="fill-amber-400 text-amber-400" />
+                    <span className="text-xs font-semibold text-slate-600">5.0</span>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-sm font-extrabold text-park-navy">
+                      ₱{slot.price_per_hour ?? 0}/hr
+                    </span>
+                    <span className="rounded-full bg-park-teal/10 px-2.5 py-0.5 text-[10px] font-bold text-park-teal">
+                      Recommended
+                    </span>
+                  </div>
+
+                  <Link
+                    href={`/driver/slots/${slot.id}`}
+                    className="mt-3 block rounded-xl bg-park-teal py-2 text-center text-xs font-bold text-white transition hover:bg-park-teal-dark"
+                  >
+                    View Slot
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         )}
+      </section>
+
+      {/* MY RESERVATIONS */}
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+        <div className="mb-4 sm:mb-5">
+          <h2 className="text-base font-extrabold text-park-navy sm:text-xl">My Reservations</h2>
+          <p className="mt-1 text-xs text-gray-400 sm:text-sm">
+            Your active and past parking bookings.
+          </p>
+        </div>
+
+        <div className="space-y-3 sm:space-y-4">
+          {myBookings.length === 0 ? (
+            <div className="rounded-2xl border-2 border-dashed border-slate-100 py-8 text-center text-sm text-slate-400">
+              You have no active parking reservations yet.
+            </div>
+          ) : (
+            myBookings.map((booking) => {
+              const slot = booking.parking_slots;
+              return (
+                <div
+                  key={booking.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:border-cyan-100 sm:p-5"
+                >
+                  <div className="min-w-0 space-y-1">
+                    <h4 className="truncate text-sm font-bold text-slate-800">
+                      {slot?.title || "Parking Space"}
+                    </h4>
+                    <p className="truncate text-xs text-slate-400">
+                      {slot?.address || "Location not available"}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      Reserved on:{" "}
+                      {new Date(booking.created_at).toLocaleDateString("en-PH", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="shrink-0 space-y-1.5 text-right">
+                    <span className="block text-xs font-extrabold text-park-teal">
+                      ₱{slot?.price_per_hour ?? 0}/hr
+                    </span>
+                    <span className="inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold capitalize text-emerald-600">
+                      {booking.status || "active"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </section>
     </main>
   );

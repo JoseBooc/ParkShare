@@ -78,7 +78,7 @@ export default function FilterDropdown({ filters, onApply }: FilterDropdownProps
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-12 z-50 w-[520px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-xl border border-gray-100 p-5">
+          <div className="absolute right-0 top-12 z-50 w-130 max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-xl border border-gray-100 p-5">
 
             {/* 3-column filter sections */}
             <div className="grid grid-cols-3 gap-5">

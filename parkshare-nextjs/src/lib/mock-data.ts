@@ -18,7 +18,7 @@ export const PARKING_SLOTS: ParkingSlot[] = [
     reviewCount: 67,
     amenities: ["CCTV", "Security Guard", "24/7 Access"],
     vehicleTypes: ["Sedan", "SUV", "Motorcycle"],
-    images: ["/images/slot-placeholder.jpg"],
+    image: "/images/avida towers davao.jpg",
     availability: [
       { day: "Mon", open: true, from: "08:00", to: "23:00" },
       { day: "Tue", open: true, from: "08:00", to: "23:00" },
@@ -47,7 +47,7 @@ export const PARKING_SLOTS: ParkingSlot[] = [
     reviewCount: 42,
     amenities: ["CCTV", "EV Charging", "Sheltered"],
     vehicleTypes: ["Sedan", "SUV", "Van", "PUV"],
-    images: ["/images/slot-placeholder.jpg"],
+    image: "/images/sm lanang premier.jpg",
     availability: [
       { day: "Mon", open: true, from: "08:00", to: "21:00" },
       { day: "Tue", open: true, from: "08:00", to: "21:00" },
@@ -76,7 +76,7 @@ export const PARKING_SLOTS: ParkingSlot[] = [
     reviewCount: 28,
     amenities: ["CCTV", "Sheltered"],
     vehicleTypes: ["Sedan", "Motorcycle"],
-    images: ["/images/slot-placeholder.jpg"],
+    image: "/images/abreeza mall parking.jpg",
     availability: [
       { day: "Mon", open: true, from: "07:00", to: "22:00" },
       { day: "Tue", open: true, from: "07:00", to: "22:00" },
@@ -105,7 +105,7 @@ export const PARKING_SLOTS: ParkingSlot[] = [
     reviewCount: 19,
     amenities: ["CCTV", "EV Charging", "Security Guard"],
     vehicleTypes: ["Sedan", "SUV", "Motorcycle", "Van"],
-    images: ["/images/slot-placeholder.jpg"],
+    image: "/images/damosa it park.avif",
     availability: [
       { day: "Mon", open: true, from: "06:00", to: "23:00" },
       { day: "Tue", open: true, from: "06:00", to: "23:00" },
@@ -134,7 +134,7 @@ export const PARKING_SLOTS: ParkingSlot[] = [
     reviewCount: 15,
     amenities: ["CCTV"],
     vehicleTypes: ["Sedan", "Motorcycle", "Pickup Truck"],
-    images: ["/images/slot-placeholder.jpg"],
+    image: "/images/magsaysay park area.jpg",
     availability: [
       { day: "Mon", open: true, from: "06:00", to: "20:00" },
       { day: "Tue", open: true, from: "06:00", to: "20:00" },
@@ -163,7 +163,7 @@ export const PARKING_SLOTS: ParkingSlot[] = [
     reviewCount: 33,
     amenities: ["CCTV", "Security Guard", "24/7 Access", "Sheltered"],
     vehicleTypes: ["Sedan", "SUV", "Van", "PUV"],
-    images: ["/images/slot-placeholder.jpg"],
+    image: "/images/gaisano mall parking.jpg",
     availability: [
       { day: "Mon", open: true, from: "00:00", to: "23:59" },
       { day: "Tue", open: true, from: "00:00", to: "23:59" },

@@ -2,14 +2,11 @@
 
 import { useState } from "react";
 import {
-  Plus,
   User,
   Send,
   MessageCircle,
   Search,
 } from "lucide-react";
-
-import Link from "next/link";
 
 import { MESSAGES } from "@/lib/mock-data";
 
@@ -117,83 +114,69 @@ export default function MessagesPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <header className="flex flex-col gap-5 border-b border-gray-100 bg-[#eefbfd] px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+      <header className="border-b border-gray-100 bg-[#eefbfd] px-4 py-5 sm:px-8 sm:py-6">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-park-teal">
+          <p className="text-xs font-bold uppercase tracking-wide text-park-teal sm:text-sm">
             Host Communication
           </p>
 
-          <h1 className="mt-1 text-3xl font-extrabold text-park-navy">
+          <h1 className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">
             Message Inbox
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-0.5 text-xs text-gray-500 sm:mt-1 sm:text-sm">
             Manage client conversations and booking concerns.
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/host/slots/add"
-            className="flex items-center gap-2 rounded-full bg-park-teal px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark"
-          >
-            <Plus size={16} />
-            Add Slot
-          </Link>
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-park-navy bg-white">
-            <User size={17} className="text-park-navy" />
-          </div>
-        </div>
       </header>
 
-      <section className="px-8 py-8">
-        <div className="mb-6 grid gap-5 md:grid-cols-3">
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
-              <MessageCircle size={20} />
+      <section className="px-4 py-6 sm:px-8 sm:py-8">
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-park-teal-light text-park-teal sm:mb-4 sm:h-11 sm:w-11 sm:rounded-2xl">
+              <MessageCircle size={18} />
             </div>
 
-            <p className="text-sm font-semibold text-gray-400">
+            <p className="text-xs font-semibold text-gray-400 sm:text-sm">
               Total Conversations
             </p>
 
-            <p className="mt-1 text-3xl font-extrabold text-park-navy">
+            <p className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">
               {messages.length}
             </p>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
-              <MessageCircle size={20} />
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-park-teal-light text-park-teal sm:mb-4 sm:h-11 sm:w-11 sm:rounded-2xl">
+              <MessageCircle size={18} />
             </div>
 
-            <p className="text-sm font-semibold text-gray-400">
+            <p className="text-xs font-semibold text-gray-400 sm:text-sm">
               Unread Messages
             </p>
 
-            <p className="mt-1 text-3xl font-extrabold text-park-navy">
+            <p className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">
               {unreadCount}
             </p>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-park-teal-light text-park-teal">
-              <User size={20} />
+          <div className="col-span-2 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 md:col-span-1">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-park-teal-light text-park-teal sm:mb-4 sm:h-11 sm:w-11 sm:rounded-2xl">
+              <User size={18} />
             </div>
 
-            <p className="text-sm font-semibold text-gray-400">
+            <p className="text-xs font-semibold text-gray-400 sm:text-sm">
               Active Drivers
             </p>
 
-            <p className="mt-1 text-3xl font-extrabold text-park-navy">
+            <p className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">
               {messages.length}
             </p>
           </div>
         </div>
 
-        <div className="flex h-[720px] overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-          <aside className="flex w-[340px] flex-col border-r border-gray-100 bg-[#eefbfd]">
+        <div className="flex h-150 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm sm:h-180 sm:flex-row sm:rounded-3xl">
+          <aside className="flex h-2/5 w-full shrink-0 flex-col border-b border-gray-100 bg-[#eefbfd] sm:h-auto sm:w-85 sm:border-b-0 sm:border-r">
             <div className="border-b border-gray-100 p-5">
               <div className="relative">
                 <Search

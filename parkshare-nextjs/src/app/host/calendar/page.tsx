@@ -4,12 +4,9 @@ import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Plus,
-  User,
   CalendarCheck,
   Clock3,
 } from "lucide-react";
-import Link from "next/link";
 import { CALENDAR_EVENTS } from "@/lib/mock-data";
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -91,37 +88,23 @@ export default function CalendarPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <header className="flex flex-col gap-5 border-b border-gray-100 bg-[#eefbfd] px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+      <header className="border-b border-gray-100 bg-[#eefbfd] px-4 py-5 sm:px-8 sm:py-6">
         <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-park-teal">
+          <p className="text-xs font-bold uppercase tracking-wide text-park-teal sm:text-sm">
             Booking Management
           </p>
 
-          <h1 className="mt-1 text-3xl font-extrabold text-park-navy">
+          <h1 className="mt-1 text-2xl font-extrabold text-park-navy sm:text-3xl">
             Calendar
           </h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-0.5 text-xs text-gray-500 sm:mt-1 sm:text-sm">
             Manage reservations and upcoming schedules.
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/host/slots/add"
-            className="flex items-center gap-2 rounded-full bg-park-teal px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-park-teal-dark"
-          >
-            <Plus size={16} />
-            Add Slot
-          </Link>
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-park-navy bg-white">
-            <User size={17} className="text-park-navy" />
-          </div>
-        </div>
       </header>
 
-      <section className="grid gap-6 px-8 py-8 lg:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid gap-6 px-4 py-6 sm:px-8 sm:py-8 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-6 flex items-center justify-between">
             <button
