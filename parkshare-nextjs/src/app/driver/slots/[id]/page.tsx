@@ -478,14 +478,21 @@ export default function SlotDetailPage() {
                   <span>1st hour (base rate)</span>
                   <span>₱{firstHour}</span>
                 </div>
-                {succeedingHours > 0 && (
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>
-                      {succeedingHours} succeeding hr{succeedingHours !== 1 ? "s" : ""} × ₱{succeedingRate}
-                    </span>
-                    <span>₱{succeedingHours * succeedingRate}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between text-slate-600">
+                  {succeedingHours > 0 ? (
+                    <>
+                      <span>
+                        {succeedingHours} succeeding hr{succeedingHours !== 1 ? "s" : ""} × ₱{succeedingRate}
+                      </span>
+                      <span>₱{succeedingHours * succeedingRate}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Succeeding rate</span>
+                      <span className="text-slate-400">₱{succeedingRate}/hr</span>
+                    </>
+                  )}
+                </div>
                 <div className="flex items-center justify-between text-slate-600">
                   <span>Service fee (5%)</span>
                   <span>₱{serviceFee}</span>
