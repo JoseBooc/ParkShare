@@ -12,24 +12,24 @@ export default function DriverNavbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
         {/* Logo */}
         <Link href="/driver" className="flex items-center">
           <img
             src="/logo.png"
             alt="ParkShare Logo"
-            className="h-8 w-auto object-contain"
+            className="h-9 w-auto object-contain"
           />
         </Link>
 
         {/* Center Nav */}
-        <nav className="hidden items-center gap-7 sm:flex">
+        <nav className="flex items-center gap-8">
           <Link
             href="/driver"
             className={`text-sm font-semibold transition-colors ${
               pathname === "/driver"
-                ? "text-park-navy"
-                : "text-gray-400 hover:text-park-navy"
+                ? "text-park-teal"
+                : "text-slate-500 hover:text-park-navy"
             }`}
           >
             Find Parking
@@ -38,16 +38,29 @@ export default function DriverNavbar() {
             href="/driver/saved"
             className={`text-sm font-semibold transition-colors ${
               pathname === "/driver/saved"
-                ? "text-park-navy"
-                : "text-gray-400 hover:text-park-navy"
+                ? "text-park-teal"
+                : "text-slate-500 hover:text-park-navy"
             }`}
           >
-            Saved Space
+            Saved Spaces
           </Link>
         </nav>
 
         {/* Right side */}
         <div className="relative flex items-center gap-3">
+          {/* Driver / Host toggle */}
+          <div className="flex items-center rounded-full bg-slate-800 p-1">
+            <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-slate-800 shadow-sm">
+              Driver
+            </span>
+            <Link
+              href="/host/slots"
+              className="px-4 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:text-slate-200"
+            >
+              Host
+            </Link>
+          </div>
+
           {/* Bell */}
           <button
             type="button"
@@ -112,7 +125,7 @@ export default function DriverNavbar() {
                 className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-[#F6F8FB] hover:text-park-navy"
               >
                 <Bookmark size={16} />
-                Saved Place
+                Saved Spaces
               </Link>
               <form action="/auth/signout" method="POST">
                 <button

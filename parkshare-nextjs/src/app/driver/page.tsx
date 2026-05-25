@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
-import { Search, Heart, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Search, Heart, ChevronRight, Star } from "lucide-react";
 import Link from "next/link";
 import FilterDropdown, { type Filters } from "@/components/driver/FilterDropdown";
 import { createClient } from "@/utils/supabase/client";
@@ -19,8 +19,6 @@ export default function DriverDashboard() {
   const [loading, setLoading] = useState(true);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [savedSlotIds, setSavedSlotIds] = useState<string[]>([]);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
   async function loadSavedSlots() {
     try {
       const supabase = createClient();
@@ -144,19 +142,15 @@ export default function DriverDashboard() {
   return (
     <main className="min-h-screen bg-[#f8f9fb]">
       {/* HERO */}
-      <section className="bg-white px-4 pb-8 pt-10 sm:px-6 sm:pb-10 sm:pt-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="text-4xl font-extrabold leading-tight text-park-navy sm:text-5xl lg:text-6xl">
-            Parking made{" "}
+      <section className="bg-white px-6 pb-8 pt-10">
+        <div className="mx-auto max-w-7xl">
+          <h1 className="text-4xl font-extrabold leading-tight text-park-navy sm:text-5xl">
+            Smart parking made{" "}
             <span className="text-park-teal">simple</span>
           </h1>
 
-          <p className="mt-3 text-sm text-gray-400 sm:mt-4 sm:text-base">
-            Find and reserve nearby parking before you arrive.
-          </p>
-
           {/* Search bar */}
-          <div className="mt-6 flex items-center gap-2 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 shadow-sm sm:mt-8 sm:gap-3 sm:px-5 sm:py-3.5">
+          <div className="mt-6 flex items-center gap-3 rounded-full border-2 border-park-teal bg-white px-5 py-3 shadow-sm">
             <Search size={17} className="shrink-0 text-gray-400" />
             <input
               type="text"
@@ -171,66 +165,52 @@ export default function DriverDashboard() {
       </section>
 
       {/* AVAILABLE SLOTS */}
-      <section className="py-6 sm:py-8">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="mb-4 flex items-center justify-between sm:mb-5">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <h2 className="text-base font-extrabold text-park-navy sm:text-xl">
-                Available parking spots near you
-              </h2>
-              {!loading && (
-                <span className="text-xs font-semibold text-gray-400 sm:text-sm">
-                  ({filtered.length} spaces)
-                </span>
-              )}
-            </div>
-
-            {!loading && filtered.length > 0 && (
-              <div className="hidden gap-2 sm:flex">
-                <button
-                  onClick={() => carouselRef.current?.scrollBy({ left: -280, behavior: "smooth" })}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-park-navy hover:text-white"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={() => carouselRef.current?.scrollBy({ left: 280, behavior: "smooth" })}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-park-navy hover:text-white"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+      <section className="py-8">
+        <div className="mx-auto max-w-7xl px-6">
+          {/* Section header */}
+          <div className="mb-5 flex items-center gap-3">
+            <h2 className="text-xl font-extrabold text-park-navy">
+              Available parking spots near you
+            </h2>
+            {!loading && (
+              <span className="text-sm font-semibold text-gray-400">
+                ({filtered.length} spaces)
+              </span>
             )}
+            <button
+              className="ml-auto flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-slate-600 transition hover:bg-slate-300"
+              aria-label="Next"
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
-        </div>
 
-        {loading ? (
-          <div className="px-6 text-center text-sm text-slate-400 animate-pulse">
-            Searching for live spaces…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="mx-auto max-w-6xl px-6">
+          {loading ? (
+            <div className="py-12 text-center text-sm text-slate-400 animate-pulse">
+              Searching for live spaces…
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="rounded-3xl border-2 border-dashed border-slate-100 p-10 text-center text-sm text-slate-400">
               {parkingSlots.length === 0
                 ? "No active parking spaces listed yet. Check back soon!"
                 : "No spots match your search. Try adjusting your filters."}
             </div>
-          </div>
-        ) : (
-          <div
-            ref={carouselRef}
-            className="flex gap-4 overflow-x-auto scroll-smooth px-4 pb-4 snap-x snap-mandatory scrollbar-none sm:gap-5 sm:px-6"
-          >
-            {filtered.map((slot) => (
-              <div
-                key={slot.id}
-                className="flex w-[72vw] shrink-0 snap-start flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition hover:shadow-md sm:w-65"
-              >
-                {/* Image */}
-                <div className="p-3 pb-0">
-                  <div className="relative h-44 w-full overflow-hidden rounded-2xl bg-slate-100">
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {filtered.map((slot) => (
+                <div
+                  key={slot.id}
+                  className="relative overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
+                >
+                  {/* Stretched invisible link — covers the whole card */}
+                  <Link
+                    href={`/driver/slots/${slot.id}`}
+                    className="absolute inset-0 z-0"
+                    aria-label={`View ${slot.title}`}
+                  />
+
+                  {/* Full-bleed image */}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
                     <img
                       src={slot.image_url || "/placeholder-parking.jpg"}
                       alt={slot.title}
@@ -238,7 +218,7 @@ export default function DriverDashboard() {
                     />
                     <button
                       onClick={() => toggleSaveSlot(slot.id)}
-                      className="absolute right-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-rose-50"
+                      className="absolute right-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-rose-50"
                       aria-label={savedSlotIds.includes(slot.id) ? "Remove from saved" : "Save slot"}
                     >
                       <Heart
@@ -251,46 +231,35 @@ export default function DriverDashboard() {
                       />
                     </button>
                   </div>
-                </div>
 
-                {/* Details */}
-                <div className="p-4">
-                  <h4 className="line-clamp-1 text-sm font-bold text-slate-800">
-                    {slot.title}
-                  </h4>
-                  <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">
-                    {slot.address || "No address specified"}
-                  </p>
-
-                  <div className="mt-1.5 flex items-center gap-1">
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span className="text-xs font-semibold text-slate-600">5.0</span>
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-sm font-extrabold text-park-navy">
-                      ₱{slot.price_per_hour ?? 0}/hr
-                    </span>
-                    <span className="rounded-full bg-park-teal/10 px-2.5 py-0.5 text-[10px] font-bold text-park-teal">
+                  {/* Card body */}
+                  <div className="p-3">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="line-clamp-1 text-sm font-bold text-slate-800">
+                        {slot.title}
+                      </h4>
+                      <Star size={12} className="shrink-0 fill-amber-400 text-amber-400" />
+                      <span className="text-xs font-semibold text-slate-600">5</span>
+                    </div>
+                    <p className="mt-1">
+                      <span className="text-base font-extrabold text-park-teal">
+                        ₱{slot.price_per_hour ?? 0}
+                      </span>
+                      <span className="text-sm text-slate-400">/hr</span>
+                    </p>
+                    <span className="mt-1.5 inline-block rounded-full border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-500">
                       Recommended
                     </span>
                   </div>
-
-                  <Link
-                    href={`/driver/slots/${slot.id}`}
-                    className="mt-3 block rounded-xl bg-park-teal py-2 text-center text-xs font-bold text-white transition hover:bg-park-teal-dark"
-                  >
-                    View Slot
-                  </Link>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* MY RESERVATIONS */}
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+      <section className="mx-auto max-w-7xl px-6 pb-12">
         <div className="mb-4 sm:mb-5">
           <h2 className="text-base font-extrabold text-park-navy sm:text-xl">My Reservations</h2>
           <p className="mt-1 text-xs text-gray-400 sm:text-sm">
