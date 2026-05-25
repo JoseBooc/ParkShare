@@ -48,19 +48,6 @@ export default function DriverNavbar() {
 
         {/* Right side */}
         <div className="relative flex items-center gap-3">
-          {/* Driver / Host toggle */}
-          <div className="flex items-center rounded-full bg-slate-800 p-1">
-            <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-slate-800 shadow-sm">
-              Driver
-            </span>
-            <Link
-              href="/host/slots"
-              className="px-4 py-1.5 text-xs font-semibold text-slate-400 transition-colors hover:text-slate-200"
-            >
-              Host
-            </Link>
-          </div>
-
           {/* Bell */}
           <button
             type="button"
