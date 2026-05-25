@@ -24,27 +24,18 @@ export default function LoginPage() {
     try {
       const supabase = createClient();
       const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin).replace(/\/$/, "");
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${siteUrl}/auth/callback?next=/driver`,
-          skipBrowserRedirect: true,
         },
       });
       if (error) {
-        console.error("Google auth error:", error);
         setGoogleError(error.message);
         setGoogleLoading(false);
-        return;
       }
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        setGoogleError("Could not generate Google sign-in URL. Try again.");
-        setGoogleLoading(false);
-      }
+      // No redirect needed — Supabase navigates automatically, keep loading state
     } catch (err: any) {
-      console.error("Google auth exception:", err);
       setGoogleError(err?.message ?? "Unexpected error. Check console.");
       setGoogleLoading(false);
     }

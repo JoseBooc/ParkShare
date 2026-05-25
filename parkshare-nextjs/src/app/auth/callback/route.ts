@@ -68,15 +68,17 @@ export async function GET(request: Request) {
 
     if (profile) {
       role = profile.role ?? "driver";
-      if (name) {
-        await supabase
-          .from("profiles")
-          .update({ full_name: name })
-          .eq("id", user.id);
-      }
+      await supabase
+        .from("profiles")
+        .update({
+          ...(name ? { full_name: name } : {}),
+          ...(user.email ? { email: user.email } : {}),
+        })
+        .eq("id", user.id);
     } else {
       await supabase.from("profiles").insert({
         id: user.id,
+        email: user.email ?? null,
         full_name: name,
         role: "driver",
       });
