@@ -16,25 +16,37 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setGoogleError(null);
+    setGoogleLoading(true);
     try {
       const supabase = createClient();
       const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin).replace(/\/$/, "");
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${siteUrl}/auth/callback?next=/driver`,
+          skipBrowserRedirect: true,
         },
       });
       if (error) {
         console.error("Google auth error:", error);
         setGoogleError(error.message);
+        setGoogleLoading(false);
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        setGoogleError("Could not generate Google sign-in URL. Try again.");
+        setGoogleLoading(false);
       }
     } catch (err: any) {
       console.error("Google auth exception:", err);
       setGoogleError(err?.message ?? "Unexpected error. Check console.");
+      setGoogleLoading(false);
     }
   };
 
@@ -147,14 +159,19 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="w-full rounded-xl border border-slate-200 py-2.5 flex items-center justify-center gap-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 shadow-sm"
+            disabled={googleLoading}
+            className="w-full rounded-xl border border-slate-200 py-2.5 flex items-center justify-center gap-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 shadow-sm disabled:opacity-60"
           >
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              className="h-4 w-4"
-              alt="Google logo"
-            />
-            Continue with Google
+            {googleLoading ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+            ) : (
+              <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                className="h-4 w-4"
+                alt="Google logo"
+              />
+            )}
+            {googleLoading ? "Redirecting to Google…" : "Continue with Google"}
           </button>
 
           {googleError && (
