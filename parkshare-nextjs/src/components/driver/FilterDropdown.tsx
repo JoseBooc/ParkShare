@@ -58,6 +58,7 @@ export default function FilterDropdown({ filters, onApply }: FilterDropdownProps
     <div className="relative">
       {/* Trigger button */}
       <button
+        type="button"
         onClick={() => setOpen((v) => !v)}
         className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors ${
           open || activeCount > 0
@@ -142,12 +143,14 @@ export default function FilterDropdown({ filters, onApply }: FilterDropdownProps
             {/* Action buttons */}
             <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-gray-100">
               <button
+                type="button"
                 onClick={handleClear}
                 className="px-5 py-2 rounded-full border border-gray-300 text-sm text-gray-600 hover:bg-gray-50 transition-colors font-medium"
               >
                 Clear All
               </button>
               <button
+                type="button"
                 onClick={handleApply}
                 className="px-5 py-2 rounded-full bg-park-teal text-white text-sm font-semibold hover:bg-park-teal-dark transition-colors"
               >

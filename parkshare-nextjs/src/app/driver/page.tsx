@@ -92,7 +92,13 @@ export default function DriverDashboard() {
   }, []);
 
   const filtered = useMemo(() => {
-    return parkingSlots.filter((slot) => {
+    const toArr = (val: any): string[] => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === "string") { try { return JSON.parse(val); } catch { return []; } }
+      return [];
+    };
+
+    const result = parkingSlots.filter((slot) => {
       const matchSearch =
         !search ||
         (slot.title ?? "").toLowerCase().includes(search.toLowerCase()) ||
@@ -102,20 +108,29 @@ export default function DriverDashboard() {
         !filters.maxPrice ||
         (slot.price_per_hour ?? 0) <= Number(filters.maxPrice);
 
+      const slotAmenities = toArr(slot.amenities);
       const matchAmenities =
         filters.amenities.length === 0 ||
-        filters.amenities.every((a) =>
-          Array.isArray(slot.amenities) && slot.amenities.includes(a)
-        );
+        filters.amenities.every((a) => slotAmenities.includes(a));
 
+      const slotVehicles = toArr(slot.vehicle_types);
       const matchVehicles =
         filters.vehicleTypes.length === 0 ||
-        filters.vehicleTypes.some((v) =>
-          Array.isArray(slot.vehicle_types) && slot.vehicle_types.includes(v)
-        );
+        filters.vehicleTypes.some((v) => slotVehicles.includes(v));
 
       return matchSearch && matchPrice && matchAmenities && matchVehicles;
     });
+
+    console.log("[Filter]", {
+      activeFilters: filters,
+      totalSlots: parkingSlots.length,
+      matchedSlots: result.length,
+      sampleSlotData: parkingSlots[0]
+        ? { amenities: parkingSlots[0].amenities, vehicle_types: parkingSlots[0].vehicle_types }
+        : null,
+    });
+
+    return result;
   }, [search, filters, parkingSlots]);
 
   const toggleSaveSlot = async (slotId: string) => {
