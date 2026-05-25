@@ -49,7 +49,7 @@ export default function HostLayout({
 
   if (!authorized) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f7fafc]">
+      <div className="flex min-h-screen items-center justify-center bg-[#f7fafc]">
         <p className="text-sm font-semibold text-gray-400">
           Checking access…
         </p>
@@ -58,9 +58,9 @@ export default function HostLayout({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex overflow-hidden bg-[#f7fafc]">
+    <div className="flex min-h-screen bg-[#f7fafc]">
       <HostSidebar />
-      <div className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</div>
+      <div className="flex-1 pb-16 md:pb-0">{children}</div>
     </div>
   );
 }

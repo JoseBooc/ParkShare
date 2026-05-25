@@ -145,7 +145,7 @@ export default function DriverDashboard() {
     <main className="min-h-screen bg-[#f8f9fb]">
       {/* HERO */}
       <section className="bg-white px-4 pb-8 pt-10 sm:px-6 sm:pb-10 sm:pt-12">
-        <div className="text-center">
+        <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-4xl font-extrabold leading-tight text-park-navy sm:text-5xl lg:text-6xl">
             Parking made{" "}
             <span className="text-park-teal">simple</span>
@@ -172,8 +172,8 @@ export default function DriverDashboard() {
 
       {/* AVAILABLE SLOTS */}
       <section className="py-6 sm:py-8">
-        <div className="px-4">
-          <div className="mb-4 flex items-center justify-between">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-4 flex items-center justify-between sm:mb-5">
             <div className="flex flex-wrap items-center gap-1.5">
               <h2 className="text-base font-extrabold text-park-navy sm:text-xl">
                 Available parking spots near you
@@ -211,7 +211,7 @@ export default function DriverDashboard() {
             Searching for live spaces…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="px-4">
+          <div className="mx-auto max-w-6xl px-6">
             <div className="rounded-3xl border-2 border-dashed border-slate-100 p-10 text-center text-sm text-slate-400">
               {parkingSlots.length === 0
                 ? "No active parking spaces listed yet. Check back soon!"
@@ -226,7 +226,7 @@ export default function DriverDashboard() {
             {filtered.map((slot) => (
               <div
                 key={slot.id}
-                className="flex w-[260px] shrink-0 snap-start flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition hover:shadow-md"
+                className="flex w-[72vw] shrink-0 snap-start flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition hover:shadow-md sm:w-65"
               >
                 {/* Image */}
                 <div className="p-3 pb-0">
@@ -290,7 +290,7 @@ export default function DriverDashboard() {
       </section>
 
       {/* MY RESERVATIONS */}
-      <section className="px-4 pb-12">
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6">
         <div className="mb-4 sm:mb-5">
           <h2 className="text-base font-extrabold text-park-navy sm:text-xl">My Reservations</h2>
           <p className="mt-1 text-xs text-gray-400 sm:text-sm">
