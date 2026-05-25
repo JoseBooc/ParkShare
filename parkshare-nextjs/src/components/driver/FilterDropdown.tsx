@@ -23,21 +23,29 @@ export default function FilterDropdown({ filters, onApply }: FilterDropdownProps
   const [local, setLocal] = useState<Filters>(filters);
 
   function toggleAmenity(a: Amenity) {
-    setLocal((prev) => ({
-      ...prev,
-      amenities: prev.amenities.includes(a)
-        ? prev.amenities.filter((x) => x !== a)
-        : [...prev.amenities, a],
-    }));
+    setLocal((prev) => {
+      const next = {
+        ...prev,
+        amenities: prev.amenities.includes(a)
+          ? prev.amenities.filter((x) => x !== a)
+          : [...prev.amenities, a],
+      };
+      onApply(next);
+      return next;
+    });
   }
 
   function toggleVehicle(v: VehicleType) {
-    setLocal((prev) => ({
-      ...prev,
-      vehicleTypes: prev.vehicleTypes.includes(v)
-        ? prev.vehicleTypes.filter((x) => x !== v)
-        : [...prev.vehicleTypes, v],
-    }));
+    setLocal((prev) => {
+      const next = {
+        ...prev,
+        vehicleTypes: prev.vehicleTypes.includes(v)
+          ? prev.vehicleTypes.filter((x) => x !== v)
+          : [...prev.vehicleTypes, v],
+      };
+      onApply(next);
+      return next;
+    });
   }
 
   function handleApply() {
@@ -78,7 +86,7 @@ export default function FilterDropdown({ filters, onApply }: FilterDropdownProps
       {/* Panel — full-width, anchored to the right, opens below */}
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => { onApply(local); setOpen(false); }} />
           <div className="absolute right-0 top-12 z-50 w-130 max-w-[calc(100vw-2rem)] rounded-2xl bg-white shadow-xl border border-gray-100 p-5">
 
             {/* 3-column filter sections */}
