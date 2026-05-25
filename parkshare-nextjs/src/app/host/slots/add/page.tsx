@@ -352,6 +352,26 @@ export default function AddSlotPage() {
                 ))}
               </div>
 
+              <p className="mb-4 mt-6 font-bold text-[#202b7b]">
+                Amenities
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                {AMENITIES.map((amenity) => (
+                  <button
+                    key={amenity}
+                    onClick={() => toggleAmenity(amenity)}
+                    className={`h-12 rounded-2xl border text-sm font-semibold ${
+                      selectedAmenities.includes(amenity)
+                        ? "border-[#45c4d9] bg-[#45c4d9] text-white"
+                        : "border-gray-200 bg-white text-gray-600"
+                    }`}
+                  >
+                    {amenity}
+                  </button>
+                ))}
+              </div>
+
               <button
                 onClick={() => setStep(3)}
                 className="mt-8 h-14 w-full rounded-full bg-[#45c4d9] font-bold text-white"
@@ -369,7 +389,7 @@ export default function AddSlotPage() {
               </h2>
 
               <p className="mb-6 mt-2 text-lg text-gray-400">
-                Set your hourly rate and amenities.
+                Set your hourly rate.
               </p>
 
               {/* First hour rate */}
@@ -449,26 +469,6 @@ export default function AddSlotPage() {
                   </div>
                 </div>
               )}
-
-              <p className="mb-4 mt-2 font-bold text-[#202b7b]">
-                Amenities
-              </p>
-
-              <div className="grid grid-cols-2 gap-4">
-                {AMENITIES.map((amenity) => (
-                  <button
-                    key={amenity}
-                    onClick={() => toggleAmenity(amenity)}
-                    className={`h-12 rounded-2xl border text-sm font-semibold ${
-                      selectedAmenities.includes(amenity)
-                        ? "border-[#45c4d9] bg-[#45c4d9] text-white"
-                        : "border-gray-200 bg-white text-gray-600"
-                    }`}
-                  >
-                    {amenity}
-                  </button>
-                ))}
-              </div>
 
               <button
                 onClick={() => setStep(4)}
