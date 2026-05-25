@@ -102,7 +102,19 @@ export default function DriverDashboard() {
         !filters.maxPrice ||
         (slot.price_per_hour ?? 0) <= Number(filters.maxPrice);
 
-      return matchSearch && matchPrice;
+      const matchAmenities =
+        filters.amenities.length === 0 ||
+        filters.amenities.every((a) =>
+          Array.isArray(slot.amenities) && slot.amenities.includes(a)
+        );
+
+      const matchVehicles =
+        filters.vehicleTypes.length === 0 ||
+        filters.vehicleTypes.some((v) =>
+          Array.isArray(slot.vehicle_types) && slot.vehicle_types.includes(v)
+        );
+
+      return matchSearch && matchPrice && matchAmenities && matchVehicles;
     });
   }, [search, filters, parkingSlots]);
 
