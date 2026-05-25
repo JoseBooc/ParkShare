@@ -15,17 +15,27 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
-    const supabase = createClient();
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin).replace(/\/$/, "");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${siteUrl}/auth/callback?next=/driver`,
-      },
-    });
-    if (error) console.error("Google auth error:", error.message);
+    setGoogleError(null);
+    try {
+      const supabase = createClient();
+      const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin).replace(/\/$/, "");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${siteUrl}/auth/callback?next=/driver`,
+        },
+      });
+      if (error) {
+        console.error("Google auth error:", error);
+        setGoogleError(error.message);
+      }
+    } catch (err: any) {
+      console.error("Google auth exception:", err);
+      setGoogleError(err?.message ?? "Unexpected error. Check console.");
+    }
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -146,6 +156,12 @@ export default function LoginPage() {
             />
             Continue with Google
           </button>
+
+          {googleError && (
+            <p className="rounded-xl bg-red-50 border border-red-200 px-4 py-2 text-center text-xs font-semibold text-red-600">
+              {googleError}
+            </p>
+          )}
 
           <Link
             href="/auth/signup"
